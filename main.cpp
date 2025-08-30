@@ -1,8 +1,4 @@
-#include "matrix.hpp"
-#include "nn.hpp"
-#include "activation.hpp"
-#include "loss.hpp"
-#include "inits.hpp"
+#include "neural_network.hpp"
 
 int main() {
 	// We will be using a simple 2,2,1 architecture to test the XOR gate
@@ -15,10 +11,10 @@ int main() {
 	nn.lossFn = NNLoss::MSE;
 	nn.lossFnDerivative = NNLoss::MSEDerivative;
 	std::vector<std::pair<NNMatrix, NNMatrix>> data = {
-		{ NNMatrix({{0},{0}}), NNMatrix({{0}}) },
-		{ NNMatrix({{0},{1}}), NNMatrix({{1}}) },
-		{ NNMatrix({{1},{0}}), NNMatrix({{1}}) },
-		{ NNMatrix({{1},{1}}), NNMatrix({{0}}) }
+		{ NNMatrix(std::vector<std::vector<double>>{{0},{0}}), NNMatrix(std::vector<std::vector<double>>{{0}}) },
+		{ NNMatrix(std::vector<std::vector<double>>{{0},{1}}), NNMatrix(std::vector<std::vector<double>>{{1}}) },
+		{ NNMatrix(std::vector<std::vector<double>>{{1},{0}}), NNMatrix(std::vector<std::vector<double>>{{1}}) },
+		{ NNMatrix(std::vector<std::vector<double>>{{1},{1}}), NNMatrix(std::vector<std::vector<double>>{{0}}) }
 	};
 	nn.batchGradientDescent(0.1, 100000, data);
 	for (std::pair<NNMatrix, NNMatrix> sample : data) {
