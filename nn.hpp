@@ -71,7 +71,7 @@ public:
 			}
 		}
 	}
-	// Forward propogate the input but return only the output and do not set activations or raw activations
+	// Forward propogate the input but return only the output and do not set any activations
 	NNMatrix run(NNMatrix input) {
 		for (int i = 0; i < depth - 1; i++) {
 			// A_i+1 = f(W_i . A_i + B_i)
@@ -83,15 +83,16 @@ public:
 	// Sets the partial derivatives of the loss with respect to the weights and biases
 	void backwardPropagation(NNMatrix input, NNMatrix target) {
 		forwardPropagation(input);
-		NNMatrix lossDerivative = lossFnDerivative(activations.back(), target);
-		// ∂L/∂A_depth-1 = L'(A_depth-1, target)
-		DB.back() = lossDerivative * outputActivationFnDerivative(rawActivations.back());
-		// DB_depth-2 = ∂L/∂A_depth-1 * f'(Z_depth-2)
-		DW.back() = NNMatrix::dot(DB.back(), activations[activations.size() - 2].transpose());
-		// DW_i = DB_i . A_i^T
-		for (int i = DB.size() - 2; i >= 0; i--) {
-			// DB_i = (W_i+1^T . DB_i+1) * f'(Z_i)
-			DB[i] = NNMatrix::dot(weights[i + 1].transpose(), DB[i + 1]) * hiddenActivationFnDerivative(rawActivations[i]);
+		for (int i = DB.size() - 1; i >= 0; i--) {
+			if (i == DB.size() - 1) {
+				NNMatrix lossDerivative = lossFnDerivative(activations.back(), target);
+				// ∂L/∂A_depth-1 = L'(A_depth-1, target)
+				DB[i] = lossDerivative * outputActivationFnDerivative(rawActivations[i]);
+				// DB_depth-2 = ∂L/∂A_depth-1 * f'(Z_depth-2)
+			} else {
+				// DB_i = (W_i+1^T . DB_i+1) * f'(Z_i)
+				DB[i] = NNMatrix::dot(weights[i + 1].transpose(), DB[i + 1]) * hiddenActivationFnDerivative(rawActivations[i]);
+			}
 			// DW_i = DB_i . A_i^T
 			DW[i] = NNMatrix::dot(DB[i], activations[i].transpose());
 		}

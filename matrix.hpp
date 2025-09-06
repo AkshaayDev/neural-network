@@ -15,6 +15,9 @@ public:
 	// Constructors
 	NNMatrix() {}
 	NNMatrix(std::vector<std::vector<double>> data) : data(data) {}
+	NNMatrix(std::vector<double> flattened) {
+		for (double n : flattened) data.push_back({n});
+	}
 
 	// Getters
 	int rows() { return data.size(); }
