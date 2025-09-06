@@ -6,8 +6,8 @@ int main() {
 	nn.setLayers({2,2,1});
 	nn.initialisationFn = NNInitialisations::xavierInitialisation;
 	nn.initialise();
-	nn.activationFn = NNActivation::sigmoid;
-	nn.activationFnDerivative = NNActivation::sigmoidDerivative;
+	nn.hiddenActivationFn = nn.outputActivationFn = NNActivation::sigmoid;
+	nn.hiddenActivationFnDerivative = nn.outputActivationFnDerivative = NNActivation::sigmoidDerivative;
 	nn.lossFn = NNLoss::MSE;
 	nn.lossFnDerivative = NNLoss::MSEDerivative;
 	std::vector<std::pair<NNMatrix, NNMatrix>> data = {

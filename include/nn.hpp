@@ -26,8 +26,10 @@ public:
 
 	// Functions for the network
 	std::function<void(NeuralNetwork&)> initialisationFn;
-	std::function<NNMatrix(NNMatrix)> activationFn;
-	std::function<NNMatrix(NNMatrix)> activationFnDerivative;
+	std::function<NNMatrix(NNMatrix)> hiddenActivationFn;
+	std::function<NNMatrix(NNMatrix)> hiddenActivationFnDerivative;
+	std::function<NNMatrix(NNMatrix)> outputActivationFn;
+	std::function<NNMatrix(NNMatrix)> outputActivationFnDerivative;
 	std::function<double(NNMatrix, NNMatrix)> lossFn;
 	std::function<NNMatrix(NNMatrix, NNMatrix)> lossFnDerivative;
 
@@ -62,14 +64,19 @@ public:
 			// Z_i = W_i . A_i + B_i
 			rawActivations[i] = NNMatrix::dot(weights[i], activations[i]) + biases[i];
 			// A_i+1 = f(Z_i)
-			activations[i + 1] = activationFn(rawActivations[i]);
+			if (i == depth - 2) {
+				activations[i + 1] = outputActivationFn(rawActivations[i]);
+			} else {
+				activations[i + 1] = hiddenActivationFn(rawActivations[i]);
+			}
 		}
 	}
 	// Forward propogate the input but return only the output and do not set activations or raw activations
 	NNMatrix run(NNMatrix input) {
 		for (int i = 0; i < depth - 1; i++) {
 			// A_i+1 = f(W_i . A_i + B_i)
-			input = activationFn(NNMatrix::dot(weights[i], input) + biases[i]);
+			input = NNMatrix::dot(weights[i], input) + biases[i];
+			input = (i == depth - 2) ? outputActivationFn(input) : hiddenActivationFn(input);
 		}
 		return input;
 	}
@@ -78,13 +85,13 @@ public:
 		forwardPropagation(input);
 		NNMatrix lossDerivative = lossFnDerivative(activations.back(), target);
 		// ∂L/∂A_depth-1 = L'(A_depth-1, target)
-		DB.back() = lossDerivative * activationFnDerivative(rawActivations.back());
+		DB.back() = lossDerivative * outputActivationFnDerivative(rawActivations.back());
 		// DB_depth-2 = ∂L/∂A_depth-1 * f'(Z_depth-2)
 		DW.back() = NNMatrix::dot(DB.back(), activations[activations.size() - 2].transpose());
 		// DW_i = DB_i . A_i^T
 		for (int i = DB.size() - 2; i >= 0; i--) {
 			// DB_i = (W_i+1^T . DB_i+1) * f'(Z_i)
-			DB[i] = NNMatrix::dot(weights[i + 1].transpose(), DB[i + 1]) * activationFnDerivative(rawActivations[i]);
+			DB[i] = NNMatrix::dot(weights[i + 1].transpose(), DB[i + 1]) * hiddenActivationFnDerivative(rawActivations[i]);
 			// DW_i = DB_i . A_i^T
 			DW[i] = NNMatrix::dot(DB[i], activations[i].transpose());
 		}

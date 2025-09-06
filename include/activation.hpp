@@ -19,6 +19,22 @@ namespace NNActivation {
 		});
 		return input;
 	}
+	// ReLU activation function
+	// ReLU(x) = max(0, x)
+	NNMatrix relu(NNMatrix input) {
+		input.forEach([](double* val, int, int) {
+			*val = std::max(0.0, *val);
+		});
+		return input;
+	}
+	// Derivative of ReLU activation function
+	// ReLU'(x) = x if x > 0 else 0
+	NNMatrix reluDerivative(NNMatrix input) {
+		input.forEach([](double* val, int, int) {
+			*val = *val > 0.0 ? 1.0 : 0.0;
+		});
+		return input;
+	}
 };
 
 #endif
