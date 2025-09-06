@@ -15,8 +15,8 @@ public:
 	// Constructors
 	NNMatrix() {}
 	NNMatrix(std::vector<std::vector<double>> data) : data(data) {}
-	NNMatrix(std::vector<double> flattened) {
-		for (double n : flattened) data.push_back({n});
+	NNMatrix(int rows, int cols) {
+		this->resize(rows, cols);
 	}
 
 	// Getters
@@ -31,6 +31,14 @@ public:
 			}
 			std::cout << "\n";
 		}
+	}
+	// Return a column matrix given a flattened vector
+	static NNMatrix fromVector(std::vector<double> vec) {
+		NNMatrix res(vec.size(), 1);
+		for (int i = 0; i < vec.size(); i++) {
+			res.data[i][0] = vec[i];
+		}
+		return res;
 	}
 	// Resize the number of rows and columns
 	void resize(int rows, int cols) {
@@ -49,8 +57,7 @@ public:
 	}
 	// Dot product of two matrices
 	static NNMatrix dot(NNMatrix a, NNMatrix b) {
-		NNMatrix result;
-		result.resize(a.rows(), b.cols());
+		NNMatrix result(a.rows(), b.cols());
 		for (int i = 0; i < a.rows(); i++) {
 			for (int j = 0; j < b.cols(); j++) {
 				for (int k = 0; k < b.rows(); k++) {
@@ -78,8 +85,7 @@ public:
 	}
 	// Transpose the matrix (Switch rows and columns)
 	NNMatrix transpose() {
-		NNMatrix res;
-		res.resize(cols(), rows());
+		NNMatrix res(cols(), rows());
 		for (int i = 0; i < rows(); i++) {
 			for (int j = 0; j < cols(); j++) {
 				res.data[j][i] = data[i][j];
