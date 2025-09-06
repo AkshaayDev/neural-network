@@ -35,6 +35,22 @@ namespace NNActivation {
 		});
 		return input;
 	}
+	// Hyperbolic tangent activation function
+	// tanh(x) = (e^x-e^-x)/(e^x+e^-x)
+	NNMatrix tanh(NNMatrix input) {
+		input.forEach([](double* val, int, int) {
+			*val = std::tanh(*val);
+		});
+		return input;
+	}
+	// Derivative of hyperbolic tangent activation function
+	// tanh'(x) = 1 - tanh(x)^2
+	NNMatrix tanhDerivative(NNMatrix input) {
+		input.forEach([](double* val, int, int) {
+			*val = 1 - std::pow(std::tanh(*val), 2);
+		});
+		return input;
+	}
 };
 
 #endif
