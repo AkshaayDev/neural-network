@@ -20,24 +20,31 @@ public:
 	}
 
 	// Getters
-	int rows() { return data.size(); }
-	int cols() { return data[0].size(); }
+	int rows() const { return data.size(); }
+	int cols() const { return data[0].size(); }
 
+	// Helpers
 	// Print the matrix
 	static void print(NNMatrix m) {
 		for (int i = 0; i < m.rows(); i++) {
 			for (int j = 0; j < m.cols(); j++) {
-				std::cout << m.data[i][j] << " ";
+				std::cout << m[i][j] << " ";
 			}
 			std::cout << "\n";
 		}
 	}
-	// Return a column matrix given a flattened vector
+	// Return a column matrix (nx1) given a flattened vector
 	static NNMatrix fromVector(std::vector<double> vec) {
 		NNMatrix res(vec.size(), 1);
 		for (int i = 0; i < vec.size(); i++) {
-			res.data[i][0] = vec[i];
+			res[i][0] = vec[i];
 		}
+		return res;
+	}
+	// Return a scalar matrix (1x1) given a single scalar
+	static NNMatrix fromScalar(double scalar) {
+		NNMatrix res;
+		res.data = {{scalar}};
 		return res;
 	}
 	// Resize the number of rows and columns
@@ -55,40 +62,98 @@ public:
 			}
 		}
 	}
+
+	// Operations
+	// Scalar addition
+	NNMatrix operator+(double scalar) {
+		NNMatrix res = *this;
+		res.forEach([scalar](double *val, int i, int j) {
+			*val += scalar;
+		});
+		return res;
+	}
+	// Element-wise addition
+	NNMatrix operator+(const NNMatrix& other) const {
+		NNMatrix res = *this;
+		res.forEach([other](double *val, int i, int j) {
+			*val += other[i][j];
+		});
+		return res;
+	}
+	// Scalar subtraction
+	NNMatrix operator-(double scalar) {
+		NNMatrix res = *this;
+		res.forEach([scalar](double *val, int i, int j) {
+			*val -= scalar;
+		});
+		return res;
+	}
+	// Element-wise subtraction
+	NNMatrix operator-(const NNMatrix& other) const {
+		NNMatrix res = *this;
+		res.forEach([other](double *val, int i, int j) {
+			*val -= other[i][j];
+		});
+		return res;
+	}
+	// Scalar multiplication
+	NNMatrix operator*(double scalar) {
+		NNMatrix res = *this;
+		res.forEach([scalar](double *val, int i, int j) {
+			*val *= scalar;
+		});
+		return res;
+	}
+	// Element-wise multiplication
+	NNMatrix operator*(const NNMatrix& other) const {
+		NNMatrix res = *this;
+		res.forEach([other](double *val, int i, int j) {
+			*val *= other[i][j];
+		});
+		return res;
+	}
+	// Scalar division 
+	NNMatrix operator/(double scalar) {
+		NNMatrix res = *this;
+		res.forEach([scalar](double *val, int i, int j) {
+			*val /= scalar;
+		});
+		return res;
+	}
+	// Element-wise division
+	NNMatrix operator/(const NNMatrix& other) const {
+		NNMatrix res = *this;
+		res.forEach([other](double *val, int i, int j) {
+			*val /= other[i][j];
+		});
+		return res;
+	}
+	// Access data directly (modifiable)
+	std::vector<double>& operator[](int row) {
+		return data[row];
+	}
+	// Access data directly (read-only)
+	const std::vector<double>& operator[](int row) const {
+		return data[row];
+	}
 	// Dot product of two matrices
-	static NNMatrix dot(NNMatrix a, NNMatrix b) {
+	static NNMatrix dot(const NNMatrix& a, const NNMatrix& b) {
 		NNMatrix result(a.rows(), b.cols());
 		for (int i = 0; i < a.rows(); i++) {
 			for (int j = 0; j < b.cols(); j++) {
 				for (int k = 0; k < b.rows(); k++) {
-					result.data[i][j] += a.data[i][k] * b.data[k][j];
+					result[i][j] += a[i][k] * b[k][j];
 				}
 			}
 		}
 		return result;
 	}
-	// Element-wise addition
-	NNMatrix operator+(NNMatrix b) {
-		NNMatrix res = *this;
-		res.forEach([b](double *val, int i, int j) {
-			*val += b.data[i][j];
-		});
-		return res;
-	}
-	// Element-wise multiplication
-	NNMatrix operator*(NNMatrix b) {
-		NNMatrix res = *this;
-		res.forEach([b](double *val, int i, int j) {
-			*val *= b.data[i][j];
-		});
-		return res;
-	}
 	// Transpose the matrix (Switch rows and columns)
-	NNMatrix transpose() {
+	NNMatrix transpose() const {
 		NNMatrix res(cols(), rows());
 		for (int i = 0; i < rows(); i++) {
 			for (int j = 0; j < cols(); j++) {
-				res.data[j][i] = data[i][j];
+				res[j][i] = data[i][j];
 			}
 		}
 		return res;

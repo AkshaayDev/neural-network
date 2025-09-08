@@ -99,39 +99,29 @@ public:
 	}
 	// Train the network using gradient descent
 	void batchGradientDescent(double learningRate, int iterations, std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
-		for (int i = 0; i < iterations; i++) {
-			std::vector<NNMatrix> accumulatedDW, accumulatedDB;
-			// These are the accumulated partial derivatives of the loss with respect to the weights and biases
-			// These also have the same dimensions as the weights and biases
-			accumulatedDW.resize(depth - 1);
-			accumulatedDB.resize(depth - 1);
+		for (int epoch = 0; epoch < iterations; epoch++) {
+			std::vector<NNMatrix> totalDW, totalDB;
+			// These are the total partial derivatives of the loss with respect to the weights and biases
+			// Resize them to have the same dimensions as the weights and biases
+			totalDW.resize(depth - 1);
+			totalDB.resize(depth - 1);
 			for (int i = 0; i < depth - 1; i++) {
-				accumulatedDW[i].resize(layers[i + 1], layers[i]);
-				accumulatedDB[i].resize(layers[i + 1], 1);
+				totalDW[i].resize(layers[i + 1], layers[i]);
+				totalDB[i].resize(layers[i + 1], 1);
 			}
-
 			// Accumulate the partial derivatives for each sample in the batch
 			for (std::pair<NNMatrix, NNMatrix> sample : batch) {
 				backwardPropagation(sample.first, sample.second);
-				for (int j = 0; j < depth - 1; j++) {
-					DW[j].forEach([&accumulatedDW, j](double *val, int y, int x) {
-						accumulatedDW[j].data[y][x] += *val;
-					});
-					DB[j].forEach([&accumulatedDB, j](double *val, int y, int x) {
-						accumulatedDB[j].data[y][x] += *val;
-					});
+				for (int i = 0; i < depth - 1; i++) {
+					totalDW[i] = totalDW[i] + DW[i];
+					totalDB[i] = totalDB[i] + DB[i];
 				}
 			}
-
 			// Using the accumulated partial derivatives, find the average and update the parameters
 			// θ = θ - α * ∂L/∂θ
-			for (int j = 0; j < depth - 1; j++) {
-				weights[j].forEach([accumulatedDW, j, learningRate, batch](double *val, int y, int x) {
-					*val -= learningRate * accumulatedDW[j].data[y][x] / batch.size();
-				});
-				biases[j].forEach([accumulatedDB, j, learningRate, batch](double *val, int y, int x) {
-					*val -= learningRate * accumulatedDB[j].data[y][x] / batch.size();
-				});
+			for (int i = 0; i < depth - 1; i++) {
+				weights[i] = weights[i] - (totalDW[i] / batch.size()) * learningRate;
+				biases[i] = biases[i] - (totalDB[i] / batch.size()) * learningRate;
 			}
 		}
 	}
