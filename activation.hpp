@@ -51,6 +51,6 @@ namespace NNActivation {
 		});
 		return input;
 	}
-};
+}
 
 #endif

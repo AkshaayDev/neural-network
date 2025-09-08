@@ -19,6 +19,6 @@ namespace NNLoss {
 		});
 		return predicted;
 	}
-};
+}
 
 #endif
