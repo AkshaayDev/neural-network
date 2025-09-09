@@ -6,5 +6,6 @@
 #include "./activation.hpp"
 #include "./loss.hpp"
 #include "./inits.hpp"
+#include "./trainer.hpp"
 
 #endif

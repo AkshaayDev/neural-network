@@ -1,6 +1,9 @@
 #ifndef NN_HPP
 #define NN_HPP
 
+#include <unordered_map>
+#include <string>
+
 class NeuralNetwork {
 public:
 	std::vector<int> layers;
@@ -32,6 +35,7 @@ public:
 	std::function<NNMatrix(NNMatrix)> outputActivationFnDerivative;
 	std::function<double(NNMatrix, NNMatrix)> lossFn;
 	std::function<NNMatrix(NNMatrix, NNMatrix)> lossFnDerivative;
+	std::function<void(NeuralNetwork&, std::vector<std::pair<NNMatrix, NNMatrix>>, std::unordered_map<std::string, double>)> trainer;
 
 	// Set the layers of the network and resize the property matrices accordingly
 	void setLayers(std::vector<int> layers) {
@@ -97,33 +101,12 @@ public:
 			DW[i] = NNMatrix::dot(DB[i], activations[i].transpose());
 		}
 	}
-	// Train the network using gradient descent
-	void batchGradientDescent(double learningRate, int iterations, std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
-		for (int epoch = 0; epoch < iterations; epoch++) {
-			std::vector<NNMatrix> totalDW, totalDB;
-			// These are the total partial derivatives of the loss with respect to the weights and biases
-			// Resize them to have the same dimensions as the weights and biases
-			totalDW.resize(depth - 1);
-			totalDB.resize(depth - 1);
-			for (int i = 0; i < depth - 1; i++) {
-				totalDW[i].resize(layers[i + 1], layers[i]);
-				totalDB[i].resize(layers[i + 1], 1);
-			}
-			// Accumulate the partial derivatives for each sample in the batch
-			for (std::pair<NNMatrix, NNMatrix> sample : batch) {
-				backwardPropagation(sample.first, sample.second);
-				for (int i = 0; i < depth - 1; i++) {
-					totalDW[i] = totalDW[i] + DW[i];
-					totalDB[i] = totalDB[i] + DB[i];
-				}
-			}
-			// Using the accumulated partial derivatives, find the average and update the parameters
-			// θ = θ - α * ∂L/∂θ
-			for (int i = 0; i < depth - 1; i++) {
-				weights[i] = weights[i] - (totalDW[i] / batch.size()) * learningRate;
-				biases[i] = biases[i] - (totalDB[i] / batch.size()) * learningRate;
-			}
-		}
+	// Train the network using the predefined trainer function
+	// The batch is a vector of samples
+	// Each sample is a pair of input and output matrices
+	// The format for the hyperparameter map is commented above the trainer function
+	void train(std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
+		trainer(*this, batch, hyperparams);
 	}
 };
 

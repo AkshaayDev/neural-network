@@ -128,6 +128,14 @@ public:
 		});
 		return res;
 	}
+	// Element-wise scalar exponent
+	NNMatrix operator^(double scalar) const {
+		NNMatrix res = *this;
+		res.forEach([scalar](double *val, int i, int j) {
+			*val = std::pow(*val, scalar);
+		});
+		return res;
+	}
 	// Access data directly (modifiable)
 	std::vector<double>& operator[](int row) {
 		return data[row];
