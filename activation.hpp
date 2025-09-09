@@ -4,7 +4,7 @@
 namespace NNActivation {
 	// Sigmoid activation function
 	// σ(x) = 1 / (1 + e^-x)
-	NNMatrix sigmoid(NNMatrix input) {
+	inline NNMatrix sigmoid(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			*val = 1.0 / (1.0 + std::exp(-*val));
 		});
@@ -12,7 +12,7 @@ namespace NNActivation {
 	}
 	// Derivative of sigmoid activation function
 	// σ'(x) = σ(x) * (1 - σ(x))
-	NNMatrix sigmoidDerivative(NNMatrix input) {
+	inline NNMatrix sigmoidDerivative(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			double sigma = 1.0 / (1.0 + std::exp(-*val));
 			*val = sigma * (1.0 - sigma);
@@ -21,7 +21,7 @@ namespace NNActivation {
 	}
 	// ReLU activation function
 	// ReLU(x) = max(0, x)
-	NNMatrix relu(NNMatrix input) {
+	inline NNMatrix relu(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			*val = std::max(0.0, *val);
 		});
@@ -29,7 +29,7 @@ namespace NNActivation {
 	}
 	// Derivative of ReLU activation function
 	// ReLU'(x) = x if x > 0 else 0
-	NNMatrix reluDerivative(NNMatrix input) {
+	inline NNMatrix reluDerivative(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			*val = *val > 0.0 ? 1.0 : 0.0;
 		});
@@ -37,7 +37,7 @@ namespace NNActivation {
 	}
 	// Hyperbolic tangent activation function
 	// tanh(x) = (e^x-e^-x)/(e^x+e^-x)
-	NNMatrix tanh(NNMatrix input) {
+	inline NNMatrix tanh(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			*val = std::tanh(*val);
 		});
@@ -45,7 +45,7 @@ namespace NNActivation {
 	}
 	// Derivative of hyperbolic tangent activation function
 	// tanh'(x) = 1 - tanh(x)^2
-	NNMatrix tanhDerivative(NNMatrix input) {
+	inline NNMatrix tanhDerivative(NNMatrix input) {
 		input.forEach([](double* val, int, int) {
 			*val = 1 - std::pow(std::tanh(*val), 2);
 		});

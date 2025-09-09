@@ -4,7 +4,7 @@
 namespace NNTrainer {
 	// Train the network using gradient descent
 	// Hyperparameters: { "learning_rate": double, "iterations": int }
-	void gradientDescent(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
+	inline void gradientDescent(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
 		double learningRate = hyperparams["learning_rate"];
 		int iterations = hyperparams["iterations"];
 
@@ -36,7 +36,7 @@ namespace NNTrainer {
 	}
 	// Train the network using momentum
 	// Hyperparameters: { "learning_rate": double, "beta": double, "iterations": int }
-	void momentum(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
+	inline void momentum(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
 		double learningRate = hyperparams["learning_rate"];
 		double beta = hyperparams["beta"];
 		int iterations = hyperparams["iterations"];
@@ -82,7 +82,7 @@ namespace NNTrainer {
 	}
 	// Train the network using adam (adaptive moment estimation)
 	// Hyperparameters: { "learning_rate": double, "beta1": double, "beta2": double, "epsilon": double, "iterations": int }
-	void adam(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
+	inline void adam(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
 		double learningRate = hyperparams["learning_rate"];
 		double beta1 = hyperparams["beta1"];
 		double beta2 = hyperparams["beta2"];
