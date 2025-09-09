@@ -8,7 +8,7 @@ namespace NNTrainer {
 		double learningRate = hyperparams["learning_rate"];
 		int iterations = hyperparams["iterations"];
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int epoch = 1; epoch <= iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -51,7 +51,7 @@ namespace NNTrainer {
 			VB[i].resize(nn.layers[i + 1], 1);
 		}
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int epoch = 1; epoch <= iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -105,7 +105,7 @@ namespace NNTrainer {
 			VB[i].resize(nn.layers[i + 1], 1);
 		}
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int epoch = 1; epoch <= iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -136,8 +136,8 @@ namespace NNTrainer {
 				VW[i] = VW[i] * beta2 + (avgDW^2) * (1 - beta2);
 				VB[i] = VB[i] * beta2 + (avgDB^2) * (1 - beta2);
 				// Correction coeffecients
-				double c1 = 1 - std::pow(beta1, epoch + 1);
-				double c2 = 1 - std::pow(beta2, epoch + 1);
+				double c1 = 1 - std::pow(beta1, epoch);
+				double c2 = 1 - std::pow(beta2, epoch);
 				nn.weights[i] = nn.weights[i] - ((MW[i]/c1) / ((VW[i]/c2)^0.5 + epsilon)) * learningRate;
 				nn.biases[i] = nn.biases[i] - ((MB[i]/c1) / ((VB[i]/c2)^0.5 + epsilon)) * learningRate;
 			}
