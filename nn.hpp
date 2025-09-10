@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <fstream>
 
 class NeuralNetwork {
 public:
@@ -107,6 +108,47 @@ public:
 	// The format for the hyperparameter map is commented above the trainer function
 	void train(std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
 		trainer(*this, batch, hyperparams);
+	}
+
+	// Save the parameters and architecture to an output file stream
+	void saveParams(std::ofstream& out) {
+		// Write the depth
+		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
+		// Write the layers
+		out.write(reinterpret_cast<const char*>(layers.data()), depth * sizeof(int));
+		// Write the weights
+		for (NNMatrix& mat : weights) {
+			mat.forEach([&out](double *val, int, int) {
+				out.write(reinterpret_cast<const char*>(val), sizeof(double));
+			});
+		}
+		// Write the biases as a vector of flattened column matrices
+		for (NNMatrix& mat : biases) {
+			for (int i = 0; i < mat.rows(); i++) {
+				out.write(reinterpret_cast<const char*>(&mat[i][0]), sizeof(double));
+			}
+		}
+	}
+	// Load the parameters and architecture from an input file stream
+	void loadParams(std::ifstream& in) {
+		// Read the depth
+		in.read(reinterpret_cast<char*>(&depth), sizeof(int));
+		// Read the layers
+		layers.resize(depth);
+		in.read(reinterpret_cast<char*>(layers.data()), depth * sizeof(int));
+		setLayers(layers);
+		// Read the weights
+		for (int i = 0; i < depth - 1; i++) {
+			for (int j = 0; j < layers[i + 1]; j++) {
+				in.read(reinterpret_cast<char*>(weights[i][j].data()), layers[i] * sizeof(double));
+			}
+		}
+		// Read the biases as a vector of flattened column matrices
+		for (int i = 0; i < depth - 1; i++) {
+			std::vector<double> flattenedBiases(layers[i + 1]);
+			in.read(reinterpret_cast<char*>(flattenedBiases.data()), layers[i + 1] * sizeof(double));
+			biases[i] = NNMatrix::fromVector(flattenedBiases);
+		}
 	}
 };
 
