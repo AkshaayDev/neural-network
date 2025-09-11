@@ -1,6 +1,8 @@
 #ifndef ACTIVATION_HPP
 #define ACTIVATION_HPP
 
+#include "neural_network.hpp"
+
 namespace NNActivation {
 	// Sigmoid activation function
 	// σ(x) = 1 / (1 + e^-x)

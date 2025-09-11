@@ -1,11 +1,7 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
-#include <iostream>
-#include <vector>
-#include <functional>
-#include <cmath>
-#include <random>
+#include "neural_network.hpp"
 
 // Minimal matrix class
 class NNMatrix {

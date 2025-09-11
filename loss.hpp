@@ -1,6 +1,8 @@
 #ifndef LOSS_HPP
 #define LOSS_HPP
 
+#include "neural_network.hpp"
+
 namespace NNLoss {
 	// Mean squared error
 	// MSE = 1/n * ∑(ŷ_i - y_i)^2

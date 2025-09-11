@@ -1,6 +1,8 @@
 #ifndef TRAINER_HPP
 #define TRAINER_HPP
 
+#include "neural_network.hpp"
+
 namespace NNTrainer {
 	// Train the network using gradient descent
 	// Hyperparameters: { "learning_rate": double, "iterations": int }

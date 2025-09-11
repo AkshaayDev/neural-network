@@ -1,7 +1,7 @@
 #ifndef INITS_HPP
 #define INITS_HPP
 
-#include <chrono>
+#include "neural_network.hpp"
 
 namespace NNInitialisations {
 	// Uniform Xavier initialisation

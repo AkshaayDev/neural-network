@@ -1,9 +1,7 @@
 #ifndef NN_HPP
 #define NN_HPP
 
-#include <unordered_map>
-#include <string>
-#include <fstream>
+#include "neural_network.hpp"
 
 class NeuralNetwork {
 public:
