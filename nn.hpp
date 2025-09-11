@@ -36,7 +36,7 @@ public:
 	std::function<NNMatrix(NNMatrix)> outputActivationFnDerivative;
 	std::function<double(NNMatrix, NNMatrix)> lossFn;
 	std::function<NNMatrix(NNMatrix, NNMatrix)> lossFnDerivative;
-	std::function<void(NeuralNetwork&, std::vector<std::pair<NNMatrix, NNMatrix>>, std::unordered_map<std::string, double>)> trainer;
+	std::function<void(NeuralNetwork&, std::vector<std::pair<NNMatrix, NNMatrix>>, std::unordered_map<std::string, double>, std::function<void(int)>)> trainer;
 
 	// Set the layers of the network and resize the property matrices accordingly
 	void setLayers(std::vector<int> layers) {
@@ -106,8 +106,13 @@ public:
 	// The batch is a vector of samples
 	// Each sample is a pair of input and output matrices
 	// The format for the hyperparameter map is commented above the trainer function
-	void train(std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
-		trainer(*this, batch, hyperparams);
+	// The optional callback function will be called after each epoch
+	void train(
+		std::vector<std::pair<NNMatrix, NNMatrix>> batch,
+		std::unordered_map<std::string, double> hyperparams,
+		std::function<void(int)> callback = [](int) {}
+	) {
+		trainer(*this, batch, hyperparams, callback);
 	}
 
 	// Save the parameters and architecture to an output file stream

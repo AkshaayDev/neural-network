@@ -4,11 +4,16 @@
 namespace NNTrainer {
 	// Train the network using gradient descent
 	// Hyperparameters: { "learning_rate": double, "iterations": int }
-	inline void gradientDescent(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
-		double learningRate = hyperparams["learning_rate"];
-		int iterations = hyperparams["iterations"];
+	inline void gradientDescent(
+		NeuralNetwork& nn,
+		std::vector<std::pair<NNMatrix, NNMatrix>> batch,
+		std::unordered_map<std::string, double> hyperparams,
+		const std::function<void(int)>& callback
+	) {
+		double learningRate = hyperparams.at("learning_rate");
+		int iterations = hyperparams.at("iterations");
 
-		for (int epoch = 1; epoch <= iterations; epoch++) {
+		for (int epoch = 0; epoch < iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -32,14 +37,20 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] - (totalDW[i] / batch.size()) * learningRate;
 				nn.biases[i] = nn.biases[i] - (totalDB[i] / batch.size()) * learningRate;
 			}
+			callback(epoch);
 		}
 	}
 	// Train the network using momentum
 	// Hyperparameters: { "learning_rate": double, "beta": double, "iterations": int }
-	inline void momentum(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
-		double learningRate = hyperparams["learning_rate"];
-		double beta = hyperparams["beta"];
-		int iterations = hyperparams["iterations"];
+	inline void momentum(
+			NeuralNetwork& nn,
+			std::vector<std::pair<NNMatrix, NNMatrix>> batch,
+			std::unordered_map<std::string, double> hyperparams,
+			const std::function<void(int)>& callback
+		) {
+		double learningRate = hyperparams.at("learning_rate");
+		double beta = hyperparams.at("beta");
+		int iterations = hyperparams.at("iterations");
 
 		std::vector<NNMatrix> VW, VB;
 		// These are the velocity terms of the partial derivatives
@@ -51,7 +62,7 @@ namespace NNTrainer {
 			VB[i].resize(nn.layers[i + 1], 1);
 		}
 
-		for (int epoch = 1; epoch <= iterations; epoch++) {
+		for (int epoch = 0; epoch < iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -78,16 +89,22 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] + VW[i] * learningRate;
 				nn.biases[i] = nn.biases[i] + VB[i] * learningRate;
 			}
+			callback(epoch);
 		}
 	}
 	// Train the network using adam (adaptive moment estimation)
 	// Hyperparameters: { "learning_rate": double, "beta1": double, "beta2": double, "epsilon": double, "iterations": int }
-	inline void adam(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>> batch, std::unordered_map<std::string, double> hyperparams) {
-		double learningRate = hyperparams["learning_rate"];
-		double beta1 = hyperparams["beta1"];
-		double beta2 = hyperparams["beta2"];
-		double epsilon = hyperparams["epsilon"];
-		int iterations = hyperparams["iterations"];
+	inline void adam(
+			NeuralNetwork& nn,
+			std::vector<std::pair<NNMatrix, NNMatrix>> batch,
+			std::unordered_map<std::string, double> hyperparams,
+			const std::function<void(int)>& callback
+		) {
+		double learningRate = hyperparams.at("learning_rate");
+		double beta1 = hyperparams.at("beta1");
+		double beta2 = hyperparams.at("beta2");
+		double epsilon = hyperparams.at("epsilon");
+		int iterations = hyperparams.at("iterations");
 
 		std::vector<NNMatrix> MW, MB, VW, VB;
 		// These are the momentum and velocity terms of the partial derivatives
@@ -105,7 +122,7 @@ namespace NNTrainer {
 			VB[i].resize(nn.layers[i + 1], 1);
 		}
 
-		for (int epoch = 1; epoch <= iterations; epoch++) {
+		for (int epoch = 0; epoch < iterations; epoch++) {
 			std::vector<NNMatrix> totalDW, totalDB;
 			// These are the total partial derivatives of the loss with respect to the weights and biases
 			// Resize them to have the same dimensions as the weights and biases
@@ -136,11 +153,12 @@ namespace NNTrainer {
 				VW[i] = VW[i] * beta2 + (avgDW^2) * (1 - beta2);
 				VB[i] = VB[i] * beta2 + (avgDB^2) * (1 - beta2);
 				// Correction coeffecients
-				double c1 = 1 - std::pow(beta1, epoch);
-				double c2 = 1 - std::pow(beta2, epoch);
+				double c1 = 1 - std::pow(beta1, epoch + 1);
+				double c2 = 1 - std::pow(beta2, epoch + 1);
 				nn.weights[i] = nn.weights[i] - ((MW[i]/c1) / ((VW[i]/c2)^0.5 + epsilon)) * learningRate;
 				nn.biases[i] = nn.biases[i] - ((MB[i]/c1) / ((VB[i]/c2)^0.5 + epsilon)) * learningRate;
 			}
+			callback(epoch);
 		}
 	}
 }
