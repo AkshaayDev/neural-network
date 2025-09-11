@@ -4,6 +4,8 @@
 #include "neural_network.hpp"
 
 namespace NNInitialisations {
+	// Weight initialisation functions
+
 	// Uniform Xavier initialisation
 	// Initialise weights uniformly across +- sqrt(6/(n_in + n_out))
 	inline void xavierUniform(NeuralNetwork& nn) {
@@ -51,6 +53,19 @@ namespace NNInitialisations {
 				*val = dis(gen);
 			});
 		}
+	}
+
+	// Bias initialisation functions
+
+	// Initialise biases to a constant
+	inline void constantBias(NeuralNetwork& nn, double constant) {
+		for (int i = 0; i < nn.biases.size(); i++) {
+			nn.biases[i].fill(constant);
+		}
+	}
+	// Initialise biases to 0
+	inline void zeroBias(NeuralNetwork& nn) {
+		constantBias(nn, 0.0);
 	}
 }
 

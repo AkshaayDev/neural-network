@@ -27,7 +27,6 @@ public:
 	// Partial derivative of the loss with respect to the biases (same dimensions as biases)
 
 	// Functions for the network
-	std::function<void(NeuralNetwork&)> initialisationFn;
 	std::function<NNMatrix(NNMatrix)> hiddenActivationFn;
 	std::function<NNMatrix(NNMatrix)> hiddenActivationFnDerivative;
 	std::function<NNMatrix(NNMatrix)> outputActivationFn;
@@ -58,8 +57,6 @@ public:
 			activations[i].resize(layers[i], 1);
 		}
 	}
-	// Use the predefined initialisation function to initialise the parameters
-	void initialise() { initialisationFn(*this); }
 	// Sets activations and raw activations after forward propogation of the input
 	void forwardPropagation(NNMatrix input) {
 		activations[0] = input;

@@ -58,6 +58,12 @@ public:
 			}
 		}
 	}
+	// Fill the matrix with a given value
+	void fill(double value) {
+		forEach([value](double *val, int i, int j) {
+			*val = value;
+		});
+	}
 
 	// Operations
 	// Scalar addition
