@@ -3,9 +3,6 @@
 
 #include "./neural-network.hpp"
 
-// Forward declaration
-class NeuralNetwork;
-
 namespace NNTrainer {
 	// Train the network using gradient descent
 	// Hyperparameters: { "learning_rate": double, "iterations": int }
