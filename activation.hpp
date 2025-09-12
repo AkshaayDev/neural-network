@@ -1,7 +1,7 @@
 #ifndef ACTIVATION_HPP
 #define ACTIVATION_HPP
 
-#include "neural_network.hpp"
+#include "./neural-network.hpp"
 
 namespace NNActivation {
 	// Sigmoid activation function
@@ -53,6 +53,14 @@ namespace NNActivation {
 		});
 		return input;
 	}
+}
+
+// Activation functions are network properties and need to be specified in the network
+// The strings in this namespace are used to identify the activation functions of the network for saving and loading
+namespace NNActivationType {
+	const std::string Sigmoid = "sigmoid";
+	const std::string ReLU = "relu";
+	const std::string Tanh = "tanh";
 }
 
 #endif

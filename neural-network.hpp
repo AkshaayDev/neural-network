@@ -1,7 +1,18 @@
 #ifndef NN_HPP
 #define NN_HPP
 
-#include "neural_network.hpp"
+#include <chrono>
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <cmath>
+#include <random>
+#include <unordered_map>
+#include <string>
+#include <fstream>
+#include "./matrix.hpp"
+#include "./activation.hpp"
+#include "./loss.hpp"
 
 class NeuralNetwork {
 public:
@@ -27,13 +38,18 @@ public:
 	// Partial derivative of the loss with respect to the biases (same dimensions as biases)
 
 	// Functions for the network
+
+	std::string hiddenActivationFnName;
 	std::function<NNMatrix(NNMatrix)> hiddenActivationFn;
 	std::function<NNMatrix(NNMatrix)> hiddenActivationFnDerivative;
+	std::string outputActivationFnName;
 	std::function<NNMatrix(NNMatrix)> outputActivationFn;
 	std::function<NNMatrix(NNMatrix)> outputActivationFnDerivative;
+	std::string lossFnName;
 	std::function<double(NNMatrix, NNMatrix)> lossFn;
 	std::function<NNMatrix(NNMatrix, NNMatrix)> lossFnDerivative;
-	std::function<void(NeuralNetwork&, std::vector<std::pair<NNMatrix, NNMatrix>>, std::unordered_map<std::string, double>, std::function<void(int)>)> trainer;
+
+	// Setters
 
 	// Set the layers of the network and resize the property matrices accordingly
 	void setLayers(std::vector<int> layers) {
@@ -57,6 +73,42 @@ public:
 			activations[i].resize(layers[i], 1);
 		}
 	}
+	// Set the activation functions of the network
+	// Pass NNActivationType as arguments
+	void setActivationFunctions(std::string hidden, std::string output) {
+		hiddenActivationFnName = hidden;
+		if (hidden == NNActivationType::Sigmoid) {
+			hiddenActivationFn = NNActivation::sigmoid;
+			hiddenActivationFnDerivative = NNActivation::sigmoidDerivative;
+		} else if (hidden == NNActivationType::ReLU) {
+			hiddenActivationFn = NNActivation::relu;
+			hiddenActivationFnDerivative = NNActivation::reluDerivative;
+		} else if (hidden == NNActivationType::Tanh) {
+			hiddenActivationFn = NNActivation::tanh;
+			hiddenActivationFnDerivative = NNActivation::tanhDerivative;
+		}
+		outputActivationFnName = output;
+		if (output == NNActivationType::Sigmoid) {
+			outputActivationFn = NNActivation::sigmoid;
+			outputActivationFnDerivative = NNActivation::sigmoidDerivative;
+		} else if (output == NNActivationType::ReLU) {
+			outputActivationFn = NNActivation::relu;
+			outputActivationFnDerivative = NNActivation::reluDerivative;
+		} else if (output == NNActivationType::Tanh) {
+			outputActivationFn = NNActivation::tanh;
+			outputActivationFnDerivative = NNActivation::tanhDerivative;
+		}
+	}
+	// Set the loss function of the network
+	// Pass NNLossType as argument
+	void setLossFunction(std::string loss) {
+		if (loss == NNLossType::MSE) {
+			lossFnName = "mse";
+			lossFn = NNLoss::MSE;
+			lossFnDerivative = NNLoss::MSEDerivative;
+		}
+	}
+
 	// Sets activations and raw activations after forward propogation of the input
 	void forwardPropagation(NNMatrix input) {
 		activations[0] = input;
@@ -97,21 +149,16 @@ public:
 			DW[i] = NNMatrix::dot(DB[i], activations[i].transpose());
 		}
 	}
-	// Train the network using the predefined trainer function
-	// The batch is a vector of samples
-	// Each sample is a pair of input and output matrices
-	// The format for the hyperparameter map is commented above the trainer function
-	// The optional callback function will be called after each epoch
-	void train(
-		std::vector<std::pair<NNMatrix, NNMatrix>> batch,
-		std::unordered_map<std::string, double> hyperparams,
-		std::function<void(int)> callback = [](int) {}
-	) {
-		trainer(*this, batch, hyperparams, callback);
-	}
 
 	// Save the parameters and architecture to an output file stream
-	void saveParams(std::ofstream& out) {
+	void save(std::ofstream& out) {
+		// Write the activation function and loss function names
+		std::string fnNames[3] = {hiddenActivationFnName, outputActivationFnName, lossFnName};
+		for (std::string& fnName : fnNames) {
+			size_t size = fnName.size();
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
+			out.write(fnName.c_str(), size);
+		}
 		// Write the depth
 		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
 		// Write the layers
@@ -130,7 +177,17 @@ public:
 		}
 	}
 	// Load the parameters and architecture from an input file stream
-	void loadParams(std::ifstream& in) {
+	void load(std::ifstream& in) {
+		// Read the activation function and loss function names
+		std::string* fnNames[3] = {&hiddenActivationFnName, &outputActivationFnName, &lossFnName};
+		for (std::string* fn : fnNames) {
+			size_t size = 0;
+			in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+			fn->resize(size);
+			in.read(&(*fn)[0], size);
+		}
+		setActivationFunctions(hiddenActivationFnName, outputActivationFnName);
+		setLossFunction(lossFnName);
 		// Read the depth
 		in.read(reinterpret_cast<char*>(&depth), sizeof(int));
 		// Read the layers
@@ -151,5 +208,8 @@ public:
 		}
 	}
 };
+
+#include "./inits.hpp"
+#include "./trainer.hpp"
 
 #endif

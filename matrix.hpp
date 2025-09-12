@@ -1,7 +1,7 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
-#include "neural_network.hpp"
+#include "./neural-network.hpp"
 
 // Minimal matrix class
 class NNMatrix {

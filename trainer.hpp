@@ -1,7 +1,10 @@
 #ifndef TRAINER_HPP
 #define TRAINER_HPP
 
-#include "neural_network.hpp"
+#include "./neural-network.hpp"
+
+// Forward declaration
+class NeuralNetwork;
 
 namespace NNTrainer {
 	// Train the network using gradient descent
@@ -164,5 +167,8 @@ namespace NNTrainer {
 		}
 	}
 }
+
+// Trainers are standalone functions and not network properties
+// Therefore, the trainer function being used needs not be specified in the network
 
 #endif

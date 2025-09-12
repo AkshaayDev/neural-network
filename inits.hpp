@@ -1,7 +1,7 @@
 #ifndef INITS_HPP
 #define INITS_HPP
 
-#include "neural_network.hpp"
+#include "./neural-network.hpp"
 
 namespace NNInitialisations {
 	// Weight initialisation functions
@@ -68,5 +68,8 @@ namespace NNInitialisations {
 		constantBias(nn, 0.0);
 	}
 }
+
+// Initialisers are standalone functions and not network properties
+// Therefore, the initialisation functions being used need not be specified in the network
 
 #endif
