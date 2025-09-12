@@ -17,6 +17,7 @@ namespace NNInitialisations {
 				*val = dis(gen);
 			});
 		}
+		nn.epochsTrained = 0;
 	}
 	// Normal Xavier initialisation
 	// Initialise weights with a normal distribution with mean of 0 and standard deviation of sqrt(2/(n_in + n_out))
@@ -29,6 +30,7 @@ namespace NNInitialisations {
 				*val = dis(gen);
 			});
 		}
+		nn.epochsTrained = 0;
 	}
 	// Uniform He initialisation
 	// Initialise weights uniformly across +- sqrt(6/n_in)
@@ -41,6 +43,7 @@ namespace NNInitialisations {
 				*val = dis(gen);
 			});
 		}
+		nn.epochsTrained = 0;
 	}
 	// Normal He initialisation
 	// Initialise weights with a normal distribution with mean of 0 and standard deviation of sqrt(2/n_in)
@@ -53,6 +56,7 @@ namespace NNInitialisations {
 				*val = dis(gen);
 			});
 		}
+		nn.epochsTrained = 0;
 	}
 
 	// Bias initialisation functions
@@ -62,6 +66,7 @@ namespace NNInitialisations {
 		for (int i = 0; i < nn.biases.size(); i++) {
 			nn.biases[i].fill(constant);
 		}
+		nn.epochsTrained = 0;
 	}
 	// Initialise biases to 0
 	inline void zeroBias(NeuralNetwork& nn) {

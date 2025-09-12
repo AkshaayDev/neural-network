@@ -19,6 +19,7 @@ public:
 	std::vector<int> layers;
 	// Represents the structure of the neural network (How many neurons is in each layer)
 	int depth; // Number of layers
+	int epochsTrained = 0;
 
 	std::vector<NNMatrix> weights;
 	// weights[i] are the weights connecting layer i to layer i+1
@@ -152,6 +153,10 @@ public:
 
 	// Save the parameters and architecture to an output file stream
 	void save(std::ofstream& out) {
+		// Write the depth
+		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
+		// Write the layers
+		out.write(reinterpret_cast<const char*>(layers.data()), depth * sizeof(int));
 		// Write the activation function and loss function names
 		std::string fnNames[3] = {hiddenActivationFnName, outputActivationFnName, lossFnName};
 		for (std::string& fnName : fnNames) {
@@ -159,10 +164,6 @@ public:
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
 			out.write(fnName.c_str(), size);
 		}
-		// Write the depth
-		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
-		// Write the layers
-		out.write(reinterpret_cast<const char*>(layers.data()), depth * sizeof(int));
 		// Write the weights
 		for (NNMatrix& mat : weights) {
 			mat.forEach([&out](double *val, int, int) {
@@ -175,9 +176,17 @@ public:
 				out.write(reinterpret_cast<const char*>(&mat[i][0]), sizeof(double));
 			}
 		}
+		// Write the epochs trained
+		out.write(reinterpret_cast<const char*>(&epochsTrained), sizeof(int));
 	}
 	// Load the parameters and architecture from an input file stream
 	void load(std::ifstream& in) {
+		// Read the depth
+		in.read(reinterpret_cast<char*>(&depth), sizeof(int));
+		// Read the layers
+		layers.resize(depth);
+		in.read(reinterpret_cast<char*>(layers.data()), depth * sizeof(int));
+		setLayers(layers);
 		// Read the activation function and loss function names
 		std::string* fnNames[3] = {&hiddenActivationFnName, &outputActivationFnName, &lossFnName};
 		for (std::string* fn : fnNames) {
@@ -188,12 +197,6 @@ public:
 		}
 		setActivationFunctions(hiddenActivationFnName, outputActivationFnName);
 		setLossFunction(lossFnName);
-		// Read the depth
-		in.read(reinterpret_cast<char*>(&depth), sizeof(int));
-		// Read the layers
-		layers.resize(depth);
-		in.read(reinterpret_cast<char*>(layers.data()), depth * sizeof(int));
-		setLayers(layers);
 		// Read the weights
 		for (int i = 0; i < depth - 1; i++) {
 			for (int j = 0; j < layers[i + 1]; j++) {
@@ -206,6 +209,8 @@ public:
 			in.read(reinterpret_cast<char*>(flattenedBiases.data()), layers[i + 1] * sizeof(double));
 			biases[i] = NNMatrix::fromVector(flattenedBiases);
 		}
+		// Read the epochs trained
+		in.read(reinterpret_cast<char*>(&epochsTrained), sizeof(int));
 	}
 };
 

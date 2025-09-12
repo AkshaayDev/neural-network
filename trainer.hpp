@@ -10,7 +10,7 @@ namespace NNTrainer {
 		NeuralNetwork& nn,
 		std::vector<std::pair<NNMatrix, NNMatrix>> batch,
 		std::unordered_map<std::string, double> hyperparams,
-		const std::function<void(int)>& callback
+		const std::function<void()>& callback
 	) {
 		double learningRate = hyperparams.at("learning_rate");
 		int iterations = hyperparams.at("iterations");
@@ -39,7 +39,8 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] - (totalDW[i] / batch.size()) * learningRate;
 				nn.biases[i] = nn.biases[i] - (totalDB[i] / batch.size()) * learningRate;
 			}
-			callback(epoch);
+			nn.epochsTrained++;
+			callback();
 		}
 	}
 	// Train the network using momentum
@@ -48,7 +49,7 @@ namespace NNTrainer {
 			NeuralNetwork& nn,
 			std::vector<std::pair<NNMatrix, NNMatrix>> batch,
 			std::unordered_map<std::string, double> hyperparams,
-			const std::function<void(int)>& callback
+			const std::function<void()>& callback
 		) {
 		double learningRate = hyperparams.at("learning_rate");
 		double beta = hyperparams.at("beta");
@@ -91,7 +92,8 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] + VW[i] * learningRate;
 				nn.biases[i] = nn.biases[i] + VB[i] * learningRate;
 			}
-			callback(epoch);
+			nn.epochsTrained++;
+			callback();
 		}
 	}
 	// Train the network using adam (adaptive moment estimation)
@@ -100,7 +102,7 @@ namespace NNTrainer {
 			NeuralNetwork& nn,
 			std::vector<std::pair<NNMatrix, NNMatrix>> batch,
 			std::unordered_map<std::string, double> hyperparams,
-			const std::function<void(int)>& callback
+			const std::function<void()>& callback
 		) {
 		double learningRate = hyperparams.at("learning_rate");
 		double beta1 = hyperparams.at("beta1");
@@ -160,7 +162,8 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] - ((MW[i]/c1) / ((VW[i]/c2)^0.5 + epsilon)) * learningRate;
 				nn.biases[i] = nn.biases[i] - ((MB[i]/c1) / ((VB[i]/c2)^0.5 + epsilon)) * learningRate;
 			}
-			callback(epoch);
+			nn.epochsTrained++;
+			callback();
 		}
 	}
 }
