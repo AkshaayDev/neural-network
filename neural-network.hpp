@@ -110,7 +110,7 @@ public:
 		}
 	}
 
-	// Sets activations and raw activations after forward propogation of the input
+	// Sets activations and raw activations after forward propagation of the input
 	void forwardPropagation(NNMatrix input) {
 		activations[0] = input;
 		for (int i = 0; i < depth - 1; i++) {
@@ -124,7 +124,7 @@ public:
 			}
 		}
 	}
-	// Forward propogate the input but return only the output and do not set any activations
+	// Forward propagate the input but return only the output and do not set any activations
 	NNMatrix run(NNMatrix input) {
 		for (int i = 0; i < depth - 1; i++) {
 			// A_i+1 = f(W_i . A_i + B_i)
