@@ -1,2 +1,8 @@
+# Output file extensions
 *.exe
 *.dat
+
+# For node.js integration
+node_modules
+package.json
+package-lock.json
