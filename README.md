@@ -3,6 +3,11 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
+  1. [NNMatrix features](#1-nnmatrix-features)
+  2. [Initializations](#2-initializations)
+  3. [Activation functions](#3-activation-functions)
+  4. [Loss functions](#4-loss-functions)
+  5. [Trainers](#5-trainers)
 - [Usage](#usage)
   1. [Cloning and Including](#1-cloning-and-including)
   2. [Creating and Configuring the Network](#2-creating-and-configuring-the-network)
@@ -21,7 +26,7 @@ This project is experimental and for educational purposes.
 - Backpropagation and network training
 - Network saving and loading with a file stream
 
-`NNMatrix` features:
+### 1. NNMatrix features
 - `std::vector<std::vector<double>>` constructor
 - `rows` and `cols` constructor
 - `rows()` and `cols()` getter functions
@@ -37,21 +42,21 @@ This project is experimental and for educational purposes.
 - Static dot product
 - Transpose of matrix
 
-Initializations:
+### 2. Initializations
 - Xavier (Normal/Uniform)
 - He (Normal/Uniform)
 - Biases to constant
 - Biases to 0
 
-Activation functions:
+### 3. Activation functions
 - Sigmoid
 - ReLU
 - tanh
 
-Loss functions:
+### 4. Loss functions
 - MSE
 
-Trainers:
+### 5. Trainers
 - Gradient Descent
 - Momentum
 - Adam
