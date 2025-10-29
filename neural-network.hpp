@@ -77,28 +77,36 @@ public:
 	// Set the activation functions of the network
 	// Pass NNActivationType as arguments
 	void setActivationFunctions(std::string hidden, std::string output) {
-		hiddenActivationFnName = hidden;
 		if (hidden == NNActivationType::Sigmoid) {
+			hiddenActivationFnName = "sigmoid";
 			hiddenActivationFn = NNActivation::sigmoid;
 			hiddenActivationFnDerivative = NNActivation::sigmoidDerivative;
 		} else if (hidden == NNActivationType::ReLU) {
+			hiddenActivationFnName = "relu";
 			hiddenActivationFn = NNActivation::relu;
 			hiddenActivationFnDerivative = NNActivation::reluDerivative;
 		} else if (hidden == NNActivationType::Tanh) {
+			hiddenActivationFnName = "tanh";
 			hiddenActivationFn = NNActivation::tanh;
-			hiddenActivationFnDerivative = NNActivation::tanhDerivative;
-		}
-		outputActivationFnName = output;
+			hiddenActivationFnDerivative = NNActivation::tanhDerivative;		
+		} else throw std::runtime_error("Unknown hidden activation function ('" + hidden + "')");
+
 		if (output == NNActivationType::Sigmoid) {
+			outputActivationFnName = "sigmoid";
 			outputActivationFn = NNActivation::sigmoid;
 			outputActivationFnDerivative = NNActivation::sigmoidDerivative;
 		} else if (output == NNActivationType::ReLU) {
+			outputActivationFnName = "relu";
 			outputActivationFn = NNActivation::relu;
 			outputActivationFnDerivative = NNActivation::reluDerivative;
 		} else if (output == NNActivationType::Tanh) {
+			outputActivationFnName = "tanh";
 			outputActivationFn = NNActivation::tanh;
 			outputActivationFnDerivative = NNActivation::tanhDerivative;
-		}
+		} else if (output == NNActivationType::Softmax) {
+			outputActivationFnName = "softmax";
+			outputActivationFn = NNActivation::softmax;
+		} else throw std::runtime_error("Unknown output activation function ('" + output + "')");
 	}
 	// Set the loss function of the network
 	// Pass NNLossType as argument
@@ -107,7 +115,11 @@ public:
 			lossFnName = "mse";
 			lossFn = NNLoss::MSE;
 			lossFnDerivative = NNLoss::MSEDerivative;
-		}
+		} else if (loss == NNLossType::CCE) {
+			lossFnName = "cce";
+			lossFn = NNLoss::CCE;
+			lossFnDerivative = NNLoss::CCEDerivative;
+		} else throw std::runtime_error("Unknown loss function ('" + loss + "')");
 	}
 
 	// Sets activations and raw activations after forward propagation of the input
@@ -138,10 +150,17 @@ public:
 		forwardPropagation(input);
 		for (int i = DB.size() - 1; i >= 0; i--) {
 			if (i == DB.size() - 1) {
-				NNMatrix lossDerivative = lossFnDerivative(activations.back(), target);
-				// ∂L/∂A_depth-1 = L'(A_depth-1, target)
-				DB[i] = lossDerivative * outputActivationFnDerivative(rawActivations[i]);
-				// DB_depth-2 = ∂L/∂A_depth-1 * f'(Z_depth-2)
+				// Handle Softmax + Cross Entropy
+				if (outputActivationFnName == "softmax") {
+					if (lossFnName == "cce") {
+						DB[i] = activations.back() - target; // Ŷ - Y
+					} else throw std::runtime_error("Softmax can only be used with cross entropy loss");
+				} else {
+					// ∂L/∂A_depth-1 = L'(A_depth-1, target)
+					NNMatrix lossDerivative = lossFnDerivative(activations.back(), target);
+					// DB_depth-2 = ∂L/∂A_depth-1 * f'(Z_depth-2)
+					DB[i] = lossDerivative * outputActivationFnDerivative(rawActivations[i]);
+				}
 			} else {
 				// DB_i = (W_i+1^T . DB_i+1) * f'(Z_i)
 				DB[i] = NNMatrix::dot(weights[i + 1].transpose(), DB[i + 1]) * hiddenActivationFnDerivative(rawActivations[i]);

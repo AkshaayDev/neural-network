@@ -53,6 +53,20 @@ namespace NNActivation {
 		});
 		return input;
 	}
+	// Softmax activation function (output only)
+	// softmax(Z)_i = e^(z_i) / sum_j=1^N e^(z_j)
+	inline NNMatrix softmax(NNMatrix input) {
+		double sum = 0;
+		double max = input.max();
+		input.forEach([&sum, max, &input](double* val, int, int) {
+			*val = std::exp(*val - max); // Subtract max for numerical stability while maintaining output
+			sum += *val;
+		});
+		return input / sum;
+	}
+	// There is no softmax activation function derivative
+	// Each preactivation affects every activation so the derivative would be a Jacobian matrix(n x n)
+	// Instead, the NeuralNetwork class handles its derivative for cross entropy loss
 }
 
 // Activation functions are network properties and need to be specified in the network
@@ -61,6 +75,7 @@ namespace NNActivationType {
 	const std::string Sigmoid = "sigmoid";
 	const std::string ReLU = "relu";
 	const std::string Tanh = "tanh";
+	const std::string Softmax = "softmax";
 }
 
 #endif

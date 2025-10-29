@@ -61,10 +61,12 @@ This project is experimental and for educational purposes.
 - Sigmoid
 - ReLU
 - tanh
+- Softmax (output only)
 
 ### 4. Loss functions
 
-- MSE
+- Mean Squared Error
+- Categorical Cross Entropy
 
 ### 5. Trainers
 
