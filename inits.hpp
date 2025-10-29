@@ -68,10 +68,6 @@ namespace NNInitialization {
 		}
 		nn.epochsTrained = 0;
 	}
-	// Initialize biases to 0
-	inline void zeroBias(NeuralNetwork& nn) {
-		constantBias(nn, 0.0);
-	}
 }
 
 // Initializers are standalone functions and not network properties

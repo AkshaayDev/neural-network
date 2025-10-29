@@ -54,7 +54,6 @@ This project is experimental and for educational purposes.
 - Xavier (Normal/Uniform)
 - He (Normal/Uniform)
 - Biases to constant
-- Biases to 0
 
 ### 3. Activation functions
 

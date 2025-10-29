@@ -21,22 +21,24 @@ public:
 	int depth; // Number of layers
 	int epochsTrained = 0;
 
-	std::vector<NNMatrix> weights;
 	// weights[i] are the weights connecting layer i to layer i+1
 	// weights.size() == depth - 1, dimension of weights[i] == layers[i+1] by layers[i]
-	std::vector<NNMatrix> biases;
+	std::vector<NNMatrix> weights;
 	// biases[i] are the biases for layer i+1
 	// biases.size() == depth - 1, dimension of biases[i] == layers[i+1] by 1
-	std::vector<NNMatrix> activations;
+	std::vector<NNMatrix> biases;
 	// activations[i] are the activations of layer i
 	// activations.size() == depth, dimension of activations[i] == layers[i] by 1
-	std::vector<NNMatrix> rawActivations;
+	std::vector<NNMatrix> activations;
 	// rawActivations[i] are the raw activations of layer i+1
 	// rawActivations.size() == depth - 1, dimension of rawActivations[i] == layers[i+1] by 1
-	std::vector<NNMatrix> DW;
-	// Partial derivative of the loss with respect to the weights (same dimensions as weights)
-	std::vector<NNMatrix> DB;
-	// Partial derivative of the loss with respect to the biases (same dimensions as biases)
+	std::vector<NNMatrix> rawActivations;
+	// Partial derivative of the loss with respect to the parameters (same dimensions)
+	std::vector<NNMatrix> DW, DB;
+	// Averaged DW and DB used for training
+	std::vector<NNMatrix> avgDW, avgDB;
+	// Parameter error velocities and momentums for training with momentum and adam
+	std::vector<NNMatrix> VW, VB, MW, MB;
 
 	// Functions for the network
 
@@ -58,20 +60,32 @@ public:
 		depth = layers.size();
 
 		weights.resize(depth - 1);
-		DW.resize(depth - 1);
 		biases.resize(depth - 1);
+		DW.resize(depth - 1);
+		avgDW.resize(depth - 1);
 		DB.resize(depth - 1);
+		avgDB.resize(depth - 1);
+		VW.resize(depth - 1);
+		VB.resize(depth - 1);
+		MW.resize(depth - 1);
+		MB.resize(depth - 1);
 		activations.resize(depth);
 		rawActivations.resize(depth - 1);
 		for (int i = 0; i < depth; i++) {
 			if (i != depth - 1) {
-				weights[i].resize(layers[i + 1], layers[i]);
+				weights[i].resize(layers[i + 1], layers[i]); weights[i].fill(0);
+				biases[i].resize(layers[i + 1], 1); biases[i].fill(0);
 				DW[i].resize(layers[i + 1], layers[i]);
-				biases[i].resize(layers[i + 1], 1);
+				avgDW[i].resize(layers[i + 1], layers[i]);
 				DB[i].resize(layers[i + 1], 1);
-				rawActivations[i].resize(layers[i + 1], 1);
+				avgDB[i].resize(layers[i + 1], 1);
+				VW[i].resize(layers[i + 1], layers[i]); VW[i].fill(0);
+				VB[i].resize(layers[i + 1], 1); VB[i].fill(0);
+				MW[i].resize(layers[i + 1], layers[i]); MW[i].fill(0);
+				MB[i].resize(layers[i + 1], 1); MB[i].fill(0);
+				rawActivations[i].resize(layers[i + 1], 1); rawActivations[i].fill(0);
 			}
-			activations[i].resize(layers[i], 1);
+			activations[i].resize(layers[i], 1); activations[i].fill(0);
 		}
 	}
 	// Set the activation functions of the network
@@ -121,9 +135,31 @@ public:
 			lossFnDerivative = NNLoss::CCEDerivative;
 		} else throw std::runtime_error("Unknown loss function ('" + loss + "')");
 	}
+	// Accumulate and average the partial derivatives for each sample in the batch
+	void averagePDs(std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
+		for (int i = 0; i < depth - 1; i++) {
+			avgDW[i].fill(0);
+			avgDB[i].fill(0);
+		}
+		for (std::pair<NNMatrix, NNMatrix> sample : batch) {
+			backwardPropagation(sample.first, sample.second);
+			for (int i = 0; i < depth - 1; i++) {
+				avgDW[i] = avgDW[i] + DW[i];
+				avgDB[i] = avgDB[i] + DB[i];
+			}
+		}
+		for (int i = 0; i < depth - 1; i++) {
+			avgDW[i] = avgDW[i] / batch.size();
+			avgDB[i] = avgDB[i] / batch.size();
+		}
+	}
 
 	// Sets activations and raw activations after forward propagation of the input
 	void forwardPropagation(NNMatrix input) {
+		if (!NNMatrix::sameSize(input, activations[0])) throw std::runtime_error("Input matrix dimension mismatch: " +
+			std::to_string(input.rows()) + "x" + std::to_string(input.cols()) + " instead of " +
+			std::to_string(activations[0].rows()) + "x" + std::to_string(activations[0].cols())
+		);
 		activations[0] = input;
 		for (int i = 0; i < depth - 1; i++) {
 			// Z_i = W_i . A_i + B_i
@@ -138,6 +174,10 @@ public:
 	}
 	// Forward propagate the input but return only the output and do not set any activations
 	NNMatrix run(NNMatrix input) {
+		if (!NNMatrix::sameSize(input, activations[0])) throw std::runtime_error("Input matrix dimension mismatch: " +
+			std::to_string(input.rows()) + "x" + std::to_string(input.cols()) + " instead of " +
+			std::to_string(activations[0].rows()) + "x" + std::to_string(activations[0].cols())
+		);
 		for (int i = 0; i < depth - 1; i++) {
 			// A_i+1 = f(W_i . A_i + B_i)
 			input = NNMatrix::dot(weights[i], input) + biases[i];
@@ -147,6 +187,10 @@ public:
 	}
 	// Sets the partial derivatives of the loss with respect to the weights and biases
 	void backwardPropagation(NNMatrix input, NNMatrix target) {
+		if (!NNMatrix::sameSize(target, activations.back())) throw std::runtime_error("Target matrix dimension mismatch: " +
+			std::to_string(target.rows()) + "x" + std::to_string(target.cols()) + " instead of " +
+			std::to_string(activations.back().rows()) + "x" + std::to_string(activations.back().cols())
+		);
 		forwardPropagation(input);
 		for (int i = DB.size() - 1; i >= 0; i--) {
 			if (i == DB.size() - 1) {
