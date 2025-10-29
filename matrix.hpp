@@ -29,6 +29,10 @@ public:
 			std::cout << "\n";
 		}
 	}
+	// Check whether two matrices are of the same size
+	inline static bool sameSize(NNMatrix a, NNMatrix b) {
+		return (a.rows() == b.rows()) && (a.cols() == b.cols());
+	}
 	// Return a column matrix (nx1) given a flattened vector
 	static NNMatrix fromVector(std::vector<double> vec) {
 		NNMatrix res(vec.size(), 1);
@@ -64,10 +68,19 @@ public:
 			*val = value;
 		});
 	}
+	// Check whether the matrix has a nan
+	inline bool hasNan() {
+		for (int i = 0; i < rows(); i++) {
+			for (int j = 0; j < cols(); j++) {
+				if (std::isnan(data[i][j])) return true;
+			}
+		}
+		return false;
+	}
 
 	// Operations
 	// Scalar addition
-	NNMatrix operator+(double scalar) {
+	NNMatrix operator+(double scalar) const {
 		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int i, int j) {
 			*val += scalar;
@@ -76,6 +89,10 @@ public:
 	}
 	// Element-wise addition
 	NNMatrix operator+(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix addition dimension mismatch: " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
+		);
 		NNMatrix res = *this;
 		res.forEach([other](double *val, int i, int j) {
 			*val += other[i][j];
@@ -83,7 +100,7 @@ public:
 		return res;
 	}
 	// Scalar subtraction
-	NNMatrix operator-(double scalar) {
+	NNMatrix operator-(double scalar) const {
 		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int i, int j) {
 			*val -= scalar;
@@ -92,6 +109,10 @@ public:
 	}
 	// Element-wise subtraction
 	NNMatrix operator-(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix subtraction dimension mismatch: " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
+		);
 		NNMatrix res = *this;
 		res.forEach([other](double *val, int i, int j) {
 			*val -= other[i][j];
@@ -99,7 +120,7 @@ public:
 		return res;
 	}
 	// Scalar multiplication
-	NNMatrix operator*(double scalar) {
+	NNMatrix operator*(double scalar) const {
 		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int i, int j) {
 			*val *= scalar;
@@ -108,6 +129,10 @@ public:
 	}
 	// Element-wise multiplication
 	NNMatrix operator*(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix multiplication dimension mismatch: " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
+		);
 		NNMatrix res = *this;
 		res.forEach([other](double *val, int i, int j) {
 			*val *= other[i][j];
@@ -115,7 +140,7 @@ public:
 		return res;
 	}
 	// Scalar division 
-	NNMatrix operator/(double scalar) {
+	NNMatrix operator/(double scalar) const {
 		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int i, int j) {
 			*val /= scalar;
@@ -124,13 +149,17 @@ public:
 	}
 	// Element-wise division
 	NNMatrix operator/(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix dividion dimension mismatch: " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
+		);
 		NNMatrix res = *this;
 		res.forEach([other](double *val, int i, int j) {
 			*val /= other[i][j];
 		});
 		return res;
 	}
-	// Element-wise scalar exponent
+	// Scalar exponent
 	NNMatrix operator^(double scalar) const {
 		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int i, int j) {
@@ -148,7 +177,14 @@ public:
 	}
 	// Dot product of two matrices
 	static NNMatrix dot(const NNMatrix& a, const NNMatrix& b) {
+		if (a.cols() != b.rows()) {
+			throw std::runtime_error("Matrix dot product dimension mismatch: " +
+				std::to_string(a.rows()) + "x" + std::to_string(a.cols()) + " . " +
+				std::to_string(b.rows()) + "x" + std::to_string(b.cols())
+			);
+		}
 		NNMatrix result(a.rows(), b.cols());
+		result.fill(0);
 		for (int i = 0; i < a.rows(); i++) {
 			for (int j = 0; j < b.cols(); j++) {
 				for (int k = 0; k < b.rows(); k++) {
@@ -167,6 +203,14 @@ public:
 			}
 		}
 		return res;
+	}
+	// Get the maximum value from the matrix
+	double max() {
+		double max = data[0][0];
+		forEach([&max](double *val, int i, int j) {
+			max = std::max(*val, max);
+		});
+		return max;
 	}
 };
 
