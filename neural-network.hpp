@@ -18,7 +18,7 @@ class NeuralNetwork {
 public:
 	std::vector<int> layers;
 	// Represents the structure of the neural network (How many neurons is in each layer)
-	int depth; // Number of layers
+	int depth = 0; // Number of layers
 	int epochsTrained = 0;
 
 	// weights[i] are the weights connecting layer i to layer i+1
@@ -213,9 +213,9 @@ public:
 			DW[i] = NNMatrix::dot(DB[i], activations[i].transpose());
 		}
 	}
-
-	// Save the parameters and architecture to an output file stream
-	void save(std::ofstream& out) {
+	
+	// Save the parameters and architecture to an output file stream with an option to include the training state
+	void save(std::ofstream& out, bool includeTrainingData = false) {
 		// Write the depth
 		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
 		// Write the layers
@@ -223,25 +223,26 @@ public:
 		// Write the activation function and loss function names
 		std::string fnNames[3] = {hiddenActivationFnName, outputActivationFnName, lossFnName};
 		for (std::string& fnName : fnNames) {
-			size_t size = fnName.size();
-			out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
+			uint32_t size = fnName.size();
+			out.write(reinterpret_cast<const char*>(&size), sizeof(uint32_t));
 			out.write(fnName.c_str(), size);
 		}
-		// Write the weights
-		for (NNMatrix& mat : weights) {
-			mat.forEach([&out](double *val, int, int) {
-				out.write(reinterpret_cast<const char*>(val), sizeof(double));
-			});
-		}
-		// Write the biases as a vector of flattened column matrices
-		for (NNMatrix& mat : biases) {
-			for (int i = 0; i < mat.rows(); i++) {
-				out.write(reinterpret_cast<const char*>(&mat[i][0]), sizeof(double));
-			}
-		}
+		// Write the parameters
+		saveMatrixVector(weights, out);
+		saveMatrixVector(biases, out);
 		// Write the epochs trained
 		out.write(reinterpret_cast<const char*>(&epochsTrained), sizeof(int));
+		// Write whether training state is included
+		out.write(reinterpret_cast<const char*>(&includeTrainingData), sizeof(bool));
+		// Write optional training state
+		if (includeTrainingData) {
+			saveMatrixVector(VW, out);
+			saveMatrixVector(VB, out);
+			saveMatrixVector(MW, out);
+			saveMatrixVector(MB, out);
+		}
 	}
+	
 	// Load the parameters and architecture from an input file stream
 	void load(std::ifstream& in) {
 		// Read the depth
@@ -253,27 +254,45 @@ public:
 		// Read the activation function and loss function names
 		std::string* fnNames[3] = {&hiddenActivationFnName, &outputActivationFnName, &lossFnName};
 		for (std::string* fn : fnNames) {
-			size_t size = 0;
-			in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+			uint32_t size = 0;
+			in.read(reinterpret_cast<char*>(&size), sizeof(uint32_t));
 			fn->resize(size);
 			in.read(&(*fn)[0], size);
 		}
 		setActivationFunctions(hiddenActivationFnName, outputActivationFnName);
 		setLossFunction(lossFnName);
-		// Read the weights
-		for (int i = 0; i < depth - 1; i++) {
-			for (int j = 0; j < layers[i + 1]; j++) {
-				in.read(reinterpret_cast<char*>(weights[i][j].data()), layers[i] * sizeof(double));
-			}
-		}
-		// Read the biases as a vector of flattened column matrices
-		for (int i = 0; i < depth - 1; i++) {
-			std::vector<double> flattenedBiases(layers[i + 1]);
-			in.read(reinterpret_cast<char*>(flattenedBiases.data()), layers[i + 1] * sizeof(double));
-			biases[i] = NNMatrix::fromVector(flattenedBiases);
-		}
+		// Read the parameters
+		loadMatrixVector(weights, in);
+		loadMatrixVector(biases, in);
 		// Read the epochs trained
 		in.read(reinterpret_cast<char*>(&epochsTrained), sizeof(int));
+		// Read whether training state is included
+		bool hasTrainingData = false;
+		in.read(reinterpret_cast<char*>(&hasTrainingData), sizeof(bool));
+		// Read optional training state
+		if (hasTrainingData) {
+			loadMatrixVector(VW, in);
+			loadMatrixVector(VB, in);
+			loadMatrixVector(MW, in);
+			loadMatrixVector(MB, in);
+		}
+	}
+private:
+	// Helper to write a matrix vector to an output file stream (Assumes matrix dimensions are known)
+	void saveMatrixVector(std::vector<NNMatrix>& vec, std::ofstream& out) {
+		for (NNMatrix& mat : vec) {
+			mat.forEach([&out](double *val, int, int) {
+				out.write(reinterpret_cast<const char*>(val), sizeof(double));
+			});
+		}
+	}
+	// Helper to load a matrix vector from an output file stream (Assumes matrix has correct dimensions)
+	void loadMatrixVector(std::vector<NNMatrix>& vec, std::ifstream& in) {
+		for (NNMatrix& mat : vec) {
+			for (int i = 0; i < mat.rows(); i++) {
+				in.read(reinterpret_cast<char*>(mat[i].data()), mat.cols() * sizeof(double));
+			}
+		}
 	}
 };
 
