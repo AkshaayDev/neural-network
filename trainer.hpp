@@ -15,14 +15,14 @@ namespace NNTrainer {
 		double learningRate = hyperparams.at("learning_rate");
 		int iterations = hyperparams.at("iterations");
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int iteration = 0; iteration < iterations; iteration++) {
 			// θ = θ - α * ∂L/∂θ
 			nn.averagePDs(batch);
 			for (int i = 0; i < nn.depth - 1; i++) {
 				nn.weights[i] = nn.weights[i] - nn.avgDW[i] * learningRate;
 				nn.biases[i] = nn.biases[i] - nn.avgDB[i] * learningRate;
 			}
-			nn.epochsTrained++;
+			nn.iterationsTrained++;
 			callback();
 		}
 	}
@@ -38,7 +38,7 @@ namespace NNTrainer {
 		double beta = hyperparams.at("beta");
 		int iterations = hyperparams.at("iterations");
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int iteration = 0; iteration < iterations; iteration++) {
 			nn.averagePDs(batch);
 			// v = β * v + (1 - β) * ∂L/∂θ
 			// θ = θ - α * v
@@ -48,7 +48,7 @@ namespace NNTrainer {
 				nn.weights[i] = nn.weights[i] - nn.VW[i] * learningRate;
 				nn.biases[i] = nn.biases[i] - nn.VB[i] * learningRate;
 			}
-			nn.epochsTrained++;
+			nn.iterationsTrained++;
 			callback();
 		}
 	}
@@ -66,7 +66,7 @@ namespace NNTrainer {
 		double epsilon = hyperparams.at("epsilon");
 		int iterations = hyperparams.at("iterations");
 
-		for (int epoch = 0; epoch < iterations; epoch++) {
+		for (int iteration = 0; iteration < iterations; iteration++) {
 			nn.averagePDs(batch);
 			// m = β1 * m + (1 - β1) * ∂L/∂θ
 			// v = β2 * v + (1 - β2) * (∂L/∂θ)^2
@@ -79,12 +79,12 @@ namespace NNTrainer {
 				nn.VW[i] = nn.VW[i] * beta2 + (nn.avgDW[i]^2) * (1 - beta2);
 				nn.VB[i] = nn.VB[i] * beta2 + (nn.avgDB[i]^2) * (1 - beta2);
 				// Correction coeffecients
-				double c1 = 1 - std::pow(beta1, epoch + 1);
-				double c2 = 1 - std::pow(beta2, epoch + 1);
+				double c1 = 1 - std::pow(beta1, nn.iterationsTrained + 1);
+				double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
 				nn.weights[i] = nn.weights[i] - ((nn.MW[i]/c1) / (((nn.VW[i]/c2)^0.5) + epsilon)) * learningRate;
 				nn.biases[i] = nn.biases[i] - ((nn.MB[i]/c1) / (((nn.VB[i]/c2)^0.5) + epsilon)) * learningRate;
 			}
-			nn.epochsTrained++;
+			nn.iterationsTrained++;
 			callback();
 		}
 	}

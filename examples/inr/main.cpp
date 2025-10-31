@@ -30,8 +30,8 @@ void createImage(std::string name) {
 }
 
 void callback() {
-	int epoch = nn.epochsTrained;
-	std::cout << "Epoch " << epoch << "\n";
+	int epoch = nn.iterationsTrained;
+	std::cout << "Iteration " << epoch << "\n";
 }
 
 std::vector<std::pair<NNMatrix, NNMatrix>> batch;
@@ -71,13 +71,13 @@ int main() {
 		{ "beta1", 0.9 },
 		{ "beta2", 0.999 },
 		{ "epsilon", 1e-8 },
-		{ "iterations", 1000 }
+		{ "iterations", 100 }
 	}, callback);
 	std::cout << "Training finished." << std::endl;
 	// Create the output image file `res.jpg`
 	createImage("res");
 	// Write network data to `nn.dat`
 	std::ofstream out("nn.dat", std::ios::binary);
-	nn.save(out);
+	nn.save(out, true);
 	out.close();
 }
