@@ -73,14 +73,14 @@ namespace NNTrainer {
 			// m̂ = m / (1 - (β1)^t)
 			// v̂ = v / (1 - (β2)^t)
 			// θ = θ - α * m̂/(sqrt(v̂) + ε)
+			// Correction coeffecients
+			double c1 = 1 - std::pow(beta1, nn.iterationsTrained + 1);
+			double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
 			for (int i = 0; i < nn.depth - 1; i++) {
 				nn.MW[i] = nn.MW[i] * beta1 + nn.avgDW[i] * (1 - beta1);
 				nn.MB[i] = nn.MB[i] * beta1 + nn.avgDB[i] * (1 - beta1);
 				nn.VW[i] = nn.VW[i] * beta2 + (nn.avgDW[i]^2) * (1 - beta2);
 				nn.VB[i] = nn.VB[i] * beta2 + (nn.avgDB[i]^2) * (1 - beta2);
-				// Correction coeffecients
-				double c1 = 1 - std::pow(beta1, nn.iterationsTrained + 1);
-				double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
 				nn.weights[i] = nn.weights[i] - ((nn.MW[i]/c1) / (((nn.VW[i]/c2)^0.5) + epsilon)) * learningRate;
 				nn.biases[i] = nn.biases[i] - ((nn.MB[i]/c1) / (((nn.VB[i]/c2)^0.5) + epsilon)) * learningRate;
 			}

@@ -1,8 +1,15 @@
 # Output file extensions
 *.exe
-*.dat
+examples/xor/out.dat
+examples/inr/res.jpg
 
 # For node.js integration
 node_modules
 package.json
 package-lock.json
+
+# Training data
+examples/mnist/data
+
+# Miscellaneous
+examples/mnist/arial.ttf
