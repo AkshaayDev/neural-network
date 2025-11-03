@@ -83,21 +83,34 @@ void callback() {
 // Its output is a confidence column matrix for each digit 0-9
 // MNIST dataset downloaded from https://drive.google.com/file/d/11ZiNnV3YtpZ7d9afHZg0rtDRrmhha-1E/view
 // MNIST dataset info: https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/
-// The files should be extracted and placed in a `/data` folder
+// The files should be extracted and placed in a `./data` folder
 // The trained network can be tested with `nnpaint.cpp`.
+// Important: Compile with OpenMP to use multithreading. The highest level of compiler optimization is recommended.
+// Example compilation command: `g++ main.cpp -O3 -fopenmp`
 int main() {
 	// Load training data and initialize the network
-	std::cout << "Loading training images\n";
-	trainset = loadMNIST("./data/train-images.idx3-ubyte", "./data/train-labels.idx1-ubyte");
-	std::cout << "Loading testing images\n";
-	testset = loadMNIST("./data/t10k-images.idx3-ubyte", "./data/t10k-labels.idx1-ubyte");
+	#pragma omp parallel sections
+	{
+		#pragma omp section
+		{
+			std::cout << "Loading training images\n";
+			trainset = loadMNIST("./data/train-images.idx3-ubyte", "./data/train-labels.idx1-ubyte");
+			std::cout << "Training images loaded\n";
+		}
+		#pragma omp section
+		{
+			std::cout << "Loading testing images\n";
+			testset = loadMNIST("./data/t10k-images.idx3-ubyte", "./data/t10k-labels.idx1-ubyte");
+			std::cout << "Testing images loaded\n";
+		}
+	}
 	nn.setLayers({784,128,64,10});
 	nn.setActivationFunctions(NNActivationType::ReLU, NNActivationType::Softmax);
 	nn.setLossFunction(NNLossType::CCE);
 	NNInitialization::heNormal(nn);
 	
-	// If there exists a data file `nn.dat`, read from it
-	std::ifstream in("nn.dat", std::ios::binary);
+	// If there exists a data file `./nn.dat`, read from it
+	std::ifstream in("./nn.dat", std::ios::binary);
 	if (in.good()) nn.load(in);
 	in.close();
 
@@ -119,8 +132,8 @@ int main() {
 			}, callback);
 		}
 		std::cout << "Epoch " << epoch << " finished.\n";
-		// Write network data to `nn.dat`
-		std::ofstream out("nn.dat", std::ios::binary);
+		// Write network data to `./nn.dat`
+		std::ofstream out("./nn.dat", std::ios::binary);
 		nn.save(out, true);
 		out.close();
 	}

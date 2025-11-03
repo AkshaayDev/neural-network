@@ -55,11 +55,11 @@ static void draw(sf::RenderWindow& window, int white) {
 
 int main() {
 	try {
-		// Load network data from `nn.dat`
+		// Load network data from `./nn.dat`
 		NeuralNetwork nn;
 		std::ifstream in("./nn.dat", std::ios::binary);
 		if (in.good()) nn.load(in);
-		else std::cerr << "Could not open network data file";
+		else std::cerr << "Could not open network data file\n";
 		in.close();
 
 		// Create a window

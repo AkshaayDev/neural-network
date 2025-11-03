@@ -1,4 +1,4 @@
-// This script converts a .txt file containing pixel data into a .jpg image
+// This script converts a .txt file containing pixel data into a .png image
 // The name of the file (without .txt) is passed as a command line argument
 const fs = require("fs");
 const sharp = require("sharp");
@@ -29,10 +29,10 @@ sharp(buffer, {
 		channels: 1, // grayscale
 	}
 })
-.jpeg()
-.toFile(name+".jpg")
+.png()
+.toFile(name+".png")
 .then(() => {
-	console.log(`Image sucessfully saved as ${name}.jpg`);
+	console.log(`Image sucessfully saved as ${name}.png`);
 	// Delete the text file after generating the image
 	fs.unlink(name+".txt", (err) => {
 		if (err) console.error("Error deleting file:", err);

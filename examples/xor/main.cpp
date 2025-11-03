@@ -33,8 +33,8 @@ int main() {
 		std::cout << " = ";
 		NNMatrix::print(nn.run(sample.first));
 	}
-	// Write the neural network data to a file `out.dat` with binary encoding
-	std::ofstream out("out.dat", std::ios::binary);
+	// Write the neural network data to a file `./out.dat` with binary encoding
+	std::ofstream out("./out.dat", std::ios::binary);
 	nn.save(out);
 	out.close();
 }

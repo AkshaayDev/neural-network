@@ -2,8 +2,8 @@
 const sharp = require("sharp");
 const fs = require("fs");
 
-const input = "img/img.png";
-const output = "img/img.hpp";
+const input = "./img/img.png";
+const output = "./img/img.hpp";
 
 (async () => {
 	try {
