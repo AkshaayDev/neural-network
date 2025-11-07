@@ -19,7 +19,7 @@ public:
 	std::vector<int> layers;
 	// Represents the structure of the neural network (How many neurons is in each layer)
 	int depth = 0; // Number of layers
-	int iterationsTrained = 0;
+	int iterationsTrained = 0, epochsTrained = 0;
 
 	// weights[i] are the weights connecting layer i to layer i+1
 	// weights.size() == depth - 1, dimension of weights[i] == layers[i+1] by layers[i]
@@ -230,8 +230,9 @@ public:
 		// Write the parameters
 		saveMatrixVector(weights, out);
 		saveMatrixVector(biases, out);
-		// Write the iterations trained
+		// Write the iterations and epochs trained
 		out.write(reinterpret_cast<const char*>(&iterationsTrained), sizeof(int));
+		out.write(reinterpret_cast<const char*>(&epochsTrained), sizeof(int));
 		// Write whether training state is included
 		out.write(reinterpret_cast<const char*>(&includeTrainingData), sizeof(bool));
 		// Write optional training state
@@ -264,8 +265,9 @@ public:
 		// Read the parameters
 		loadMatrixVector(weights, in);
 		loadMatrixVector(biases, in);
-		// Read the iterations trained
+		// Read the iterations and epochs trained
 		in.read(reinterpret_cast<char*>(&iterationsTrained), sizeof(int));
+		in.read(reinterpret_cast<char*>(&epochsTrained), sizeof(int));
 		// Read whether training state is included
 		bool hasTrainingData = false;
 		in.read(reinterpret_cast<char*>(&hasTrainingData), sizeof(bool));

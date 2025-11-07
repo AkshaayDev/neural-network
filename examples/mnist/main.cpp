@@ -116,7 +116,7 @@ int main() {
 
 	std::cout << "Training starting.\n";
 	callback(); // Log iteration 0 and initial loss (usually around log_e(1/10) or ~2.30)
-	for (int epoch = 0; epoch <= 15; epoch++) {
+	for (int epoch = 0; epoch < 15; epoch++) {
 		const size_t batchSize = 128;
 		for (int i = 0; i < trainset.size(); i += batchSize) {
 			std::vector<std::pair<NNMatrix, NNMatrix>> batch(
@@ -131,7 +131,7 @@ int main() {
 				{ "iterations", 1 }
 			}, callback);
 		}
-		std::cout << "Epoch " << epoch << " finished.\n";
+		std::cout << "Epoch " << nn.epochsTrained << " finished.\n";
 		// Write network data to `./nn.dat`
 		std::ofstream out("./nn.dat", std::ios::binary);
 		nn.save(out, true);
