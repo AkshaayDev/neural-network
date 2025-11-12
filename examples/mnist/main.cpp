@@ -18,21 +18,19 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 	if (!images.is_open()) throw std::runtime_error("Cannot open image dataset file");
 	if (!labels.is_open()) throw std::runtime_error("Cannot open label dataset file");
 
-	// Read images
 	int magicNumber = 0;
 	int totalImages = 0, rows = 0, cols = 0;
-
+	// Read image magic number
 	images.read((char*)&magicNumber, sizeof(magicNumber)); magicNumber = reverseInt(magicNumber);
 	if(magicNumber != 2051) throw std::runtime_error("Invalid MNIST image file!");
-
+	// Read total number of imagaes, rows and columns
 	images.read((char*)&totalImages, sizeof(totalImages)), totalImages = reverseInt(totalImages);
 	images.read((char*)&rows, sizeof(rows)), rows = reverseInt(rows);
 	images.read((char*)&cols, sizeof(cols)), cols = reverseInt(cols);
-
-	// Read labels
+	// Read label magic number
 	labels.read((char*)&magicNumber, sizeof(magicNumber)); magicNumber = reverseInt(magicNumber);
 	if (magicNumber != 2049) throw std::runtime_error("Invalid MNIST label file!");
-
+	// Read total number of labels
 	int totalLabels = 0;
 	labels.read((char*)&totalLabels, sizeof(totalLabels)), totalLabels = reverseInt(totalLabels);
 
@@ -41,7 +39,6 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 	}
 
 	std::vector<std::pair<NNMatrix, NNMatrix>> dataset(totalImages);
-
 	for (int i = 0; i < totalImages; i++) {
 		// Form a label column matrix
 		unsigned char label;
@@ -65,20 +62,30 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 NeuralNetwork nn;
 std::vector<std::pair<NNMatrix, NNMatrix>> trainset, testset;
 
-// Log iteration number and average loss
-void callback() {
-	std::cout << "Iteration " << nn.iterationsTrained;
-	if (nn.iterationsTrained % 20 != 0) { std::cout << '\n'; return; }
-	// Log average loss of the test set every 20 iterations
-	double total_loss = 0.0;
-	#pragma omp parallel for reduction(+:total_loss) // Multithreading
+// Calculate average loss of the test set (Uses multithreading if OpenMP is used)
+double avgLoss() {
+	double totalLoss = 0.0;
+	#pragma omp parallel for reduction(+:totalLoss)
 	for (int i = 0; i < testset.size(); i++) {
-		total_loss += nn.lossFn(nn.run(testset[i].first), testset[i].second);
+		totalLoss += nn.lossFn(nn.run(testset[i].first), testset[i].second);
 	}
-	std::cout << ", Avg Loss: " << total_loss / testset.size() << '\n';
+	return totalLoss / testset.size();
+}
+// Log iteration number every iteration and average loss of the test set every 20 iterations
+void iterationCallback() {
+	std::cout << "Iteration " << nn.iterationsTrained;
+	if (nn.iterationsTrained % 20 == 0) std::cout << ", Avg Loss: " << avgLoss();
+	std::cout << '\n';
+}
+// Log epoch number and write network data to `./nn.dat`
+void epochCallback() {
+	std::cout << "Epoch " << nn.epochsTrained << " finished.\n";
+	std::ofstream out("./nn.dat", std::ios::binary);
+	nn.save(out, true);
+	out.close();
 }
 
-// In this example, we will train a neural network to recognise images of handwritten digits.
+// In this example, we will train a neural network to recognize images of handwritten digits.
 // Its input is a flattened 28x28 column matrix of grayscale values between 0 and 1
 // Its output is a confidence column matrix for each digit 0-9
 // MNIST dataset downloaded from https://drive.google.com/file/d/11ZiNnV3YtpZ7d9afHZg0rtDRrmhha-1E/view
@@ -114,28 +121,13 @@ int main() {
 	if (in.good()) nn.load(in);
 	in.close();
 
-	std::cout << "Training starting.\n";
-	callback(); // Log iteration 0 and initial loss (usually around log_e(1/10) or ~2.30)
-	for (int epoch = 0; epoch < 15; epoch++) {
-		const size_t batchSize = 128;
-		for (int i = 0; i < trainset.size(); i += batchSize) {
-			std::vector<std::pair<NNMatrix, NNMatrix>> batch(
-				trainset.begin() + i,
-				trainset.begin() + std::min(i + batchSize, trainset.size())
-			);
-			NNTrainer::adam(nn, batch, {
-				{ "learning_rate", 0.001 },
-				{ "beta1", 0.9 },
-				{ "beta2", 0.999 },
-				{ "epsilon", 1e-8 },
-				{ "iterations", 1 }
-			}, callback);
-		}
-		std::cout << "Epoch " << nn.epochsTrained << " finished.\n";
-		// Write network data to `./nn.dat`
-		std::ofstream out("./nn.dat", std::ios::binary);
-		nn.save(out, true);
-		out.close();
-	}
+	std::cout << "Training starting after " << nn.epochsTrained << " epochs and " << nn.iterationsTrained << " iterations.\n";
+	std::cout << "Current average testset loss: " << avgLoss() << '\n';
+	// The loss is usually around log_e(1/10) or ~2.30 after initialization
+	NNTrainer trainer(nn, trainset);
+	trainer.sampleSize = 128;
+	trainer.iterationCallback = iterationCallback;
+	trainer.epochCallback = epochCallback;
+	trainer.train(NNOptimizerType::Adam, 30);
 	std::cout << "Training finished." << std::endl;
 }

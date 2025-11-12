@@ -39,12 +39,12 @@ static void draw(int delta) {
 			}
 			double& pixel = pixels[28 * ny + nx][0];
 			// Clamp between 0-1
-			pixel = std::clamp(pixel + (delta * intensity), 0.0, 1.0);
+			pixel = std::max(0.0, std::min(pixel + delta * intensity, 1.0));
 		}
 	}
 }
 
-int main(void) {
+int main() {
 	// Load network data from `./nn.dat`
 	NeuralNetwork nn;
 	std::ifstream in("./nn.dat", std::ios::binary);
@@ -60,6 +60,7 @@ int main(void) {
 	std::vector<Color> pixelColors(28 * 28);
 	Image img = GenImageColor(28, 28, BLACK);
 	Texture2D texture = LoadTextureFromImage(img);
+	UnloadImage(img);
 
 	while (!WindowShouldClose()) {
 		// Left Mouse: White brush
@@ -108,6 +109,7 @@ int main(void) {
 		}
 		EndDrawing();
 	}
+	UnloadTexture(texture);
 	CloseWindow();
 	return 0;
 }

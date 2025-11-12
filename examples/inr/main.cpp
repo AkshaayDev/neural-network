@@ -61,15 +61,10 @@ int main() {
 	in.close();
 	// Train the network with adam
 	loadBatch();
-	NNTrainer::adam(nn, batch, {
-		{ "learning_rate", 0.1 },
-		{ "beta1", 0.9 },
-		{ "beta2", 0.999 },
-		{ "epsilon", 1e-8 },
-		{ "iterations", 100 }
-	}, []() {
-		std::cout << "Iteration " << nn.iterationsTrained << "\n";
-	});
+	NNTrainer trainer(nn, batch);
+	trainer.learningRate = 0.1;
+	trainer.epochCallback = []() { std::cout << "Epoch " << nn.epochsTrained << "\n"; };
+	trainer.train(NNOptimizerType::Adam, 100);
 	std::cout << "Training finished." << std::endl;
 	// Create the output image file `./res.png`
 	createImage("./res");
