@@ -95,7 +95,7 @@ public:
 	}
 };
 
-// Trainers are standalone functions and not network properties
+// Trainers are standalone functions and not network attributesyyy
 // Therefore, the trainer function being used needs not be specified in the network
 
 #endif

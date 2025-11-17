@@ -70,7 +70,7 @@ namespace NNInitialization {
 	}
 }
 
-// Initializers are standalone functions and not network properties
+// Initializers are standalone functions and not network attributes
 // Therefore, the initialization functions being used need not be specified in the network
 
 #endif

@@ -42,7 +42,7 @@ namespace NNLoss {
 	}
 }
 
-// Loss functions are network properties and need to be specified in the network
+// Loss functions are network attributes and need to be specified in the network
 // The strings in this namespace are used to identify the loss function in the network for saving and loading
 namespace NNLossType {
 	const std::string MSE = "mse";

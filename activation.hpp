@@ -69,7 +69,7 @@ namespace NNActivation {
 	// Instead, the NeuralNetwork class handles its derivative for cross entropy loss
 }
 
-// Activation functions are network properties and need to be specified in the network
+// Activation functions are network attributesy and need to be specified in the network
 // The strings in this namespace are used to identify the activation functions of the network for saving and loading
 namespace NNActivationType {
 	const std::string Sigmoid = "sigmoid";

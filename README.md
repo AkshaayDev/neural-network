@@ -204,7 +204,7 @@ During training the optimizers use these hyperparameters by default:
 - `beta2` = 0.999 (used for adam)
 - `epsilon` = 1e-8 (used for adam)
 
-These hyperparameters can be adjusted as trainer properties.
+These hyperparameters can be adjusted as trainer attributes.
 
 Finally call the `train()` method and pass a value from the `NNOptimizerType` enum class and the number of epochs.
 

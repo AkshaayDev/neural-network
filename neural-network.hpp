@@ -55,7 +55,7 @@ public:
 
 	// Setters
 
-	// Set the layers of the network and resize the property matrices accordingly
+	// Set the layers of the network and resize the attribute matrices accordingly
 	void setLayers(std::vector<int> layers) {
 		this->layers = layers;
 		depth = layers.size();
