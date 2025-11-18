@@ -14,10 +14,10 @@ NeuralNetwork nn;
 const char* imgPath = "./img/img.png";
 const char* outPath = "./res.png";
 int width, height;
-const int outWidth = 512, outHeight = 512;
 
 // Create the neural representation of the image and save it into `outPath`
 void createImage() {
+	const int outWidth = 512, outHeight = 512;
 	unsigned char* data = new unsigned char[outWidth * outHeight * 3];
 	#pragma omp parallel for collapse(2) // Parallelize each iteration
 	for (int i = 0; i < outHeight; i++) {
@@ -25,7 +25,7 @@ void createImage() {
 			int idx = i * outWidth + j;
 			double y = static_cast<double>(i) / (outHeight - 1) * 2 - 1;
 			double x = static_cast<double>(j) / (outWidth - 1) * 2 - 1;
-			NNMatrix rgb = nn.run(NNMatrix::fromVector({y, x}));
+			NNMatrix rgb = nn.run(NNMatrix::fromVector({x, y}));
 			for (int c = 0; c < 3; c++) {
 				data[3 * idx + c] = rgb[c][0] * 255;
 			}
@@ -53,7 +53,7 @@ void loadImage() {
 			std::pair<NNMatrix, NNMatrix> sample;
 			double y = static_cast<double>(i) / (height - 1) * 2 - 1;
 			double x = static_cast<double>(j) / (width - 1) * 2 - 1;
-			sample.first = NNMatrix::fromVector({y, x});
+			sample.first = NNMatrix::fromVector({x, y});
 			sample.second.resize(3,1);
 			for (int c = 0; c < 3; c++) {
 				sample.second[c][0] = static_cast<double>(data[3 * idx + c]) / 255;
@@ -66,7 +66,7 @@ void loadImage() {
 
 // In this example, we will try to get the network to learn an image with an Implicit Neural Representation(INR)
 // To do this, the image is first squished into a square with sides normalised to (-1, 1)
-// Then, it approximates a function f(y,x) => {r,g,b}
+// Then, it approximates a function f(x,y) => {r,g,b}
 // This script loads the image data, trains the network and creates a resulting image approximation
 int main() {
 	nn.setLayers({2,32,32,3});
