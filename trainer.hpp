@@ -33,6 +33,7 @@ public:
 	void train(NNOptimizerType optimizer, int epochs) {
 		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 		int actualSize = (sampleSize == -1) ? batch.size() : sampleSize;
+
 		for (int epoch = 1; epoch <= epochs; epoch++) {
 			if (enableShuffling) std::shuffle(batch.begin(), batch.end(), gen);
 			for (int i = 0; i < batch.size(); i += actualSize) {
@@ -59,8 +60,8 @@ public:
 	inline void gradientDescent() {
 		// θ = θ - α * ∂L/∂θ
 		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.weights[i] = nn.weights[i] - nn.avgDW[i] * learningRate;
-			nn.biases[i] = nn.biases[i] - nn.avgDB[i] * learningRate;
+			nn.weights[i] = nn.weights[i] - learningRate * nn.avgDW[i];
+			nn.biases[i] = nn.biases[i] - learningRate * nn.avgDB[i];
 		}
 	}
 	// Train the network using momentum (Requires learningRate, beta)
@@ -68,10 +69,10 @@ public:
 		// v = β * v + (1 - β) * ∂L/∂θ
 		// θ = θ - α * v
 		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.VW[i] = nn.VW[i] * beta + nn.avgDW[i] * (1 - beta);
-			nn.VB[i] = nn.VB[i] * beta + nn.avgDB[i] * (1 - beta);
-			nn.weights[i] = nn.weights[i] - nn.VW[i] * learningRate;
-			nn.biases[i] = nn.biases[i] - nn.VB[i] * learningRate;
+			nn.VW[i] = beta * nn.VW[i] + (1 - beta) * nn.avgDW[i];
+			nn.VB[i] = beta * nn.VB[i] + (1 - beta) * nn.avgDB[i];
+			nn.weights[i] = nn.weights[i] - learningRate * nn.VW[i];
+			nn.biases[i] = nn.biases[i] - learningRate * nn.VB[i];
 		}
 	}
 	// Train the network using adam (adaptive moment estimation) (Requires learningRate, beta1, beta2, epsilon)
@@ -85,12 +86,12 @@ public:
 		double c1 = 1 - std::pow(beta1, nn.iterationsTrained + 1);
 		double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
 		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.MW[i] = nn.MW[i] * beta1 + nn.avgDW[i] * (1 - beta1);
-			nn.MB[i] = nn.MB[i] * beta1 + nn.avgDB[i] * (1 - beta1);
-			nn.VW[i] = nn.VW[i] * beta2 + (nn.avgDW[i]^2) * (1 - beta2);
-			nn.VB[i] = nn.VB[i] * beta2 + (nn.avgDB[i]^2) * (1 - beta2);
-			nn.weights[i] = nn.weights[i] - ((nn.MW[i]/c1) / (((nn.VW[i]/c2)^0.5) + epsilon)) * learningRate;
-			nn.biases[i] = nn.biases[i] - ((nn.MB[i]/c1) / (((nn.VB[i]/c2)^0.5) + epsilon)) * learningRate;
+			nn.MW[i] = beta1 * nn.MW[i] + (1 - beta1) * nn.avgDW[i];
+			nn.MB[i] = beta1 * nn.MB[i] + (1 - beta1) * nn.avgDB[i];
+			nn.VW[i] = beta2 * nn.VW[i] + (1 - beta2) * (nn.avgDW[i] ^ 2);
+			nn.VB[i] = beta2 * nn.VB[i] + (1 - beta2) * (nn.avgDB[i] ^ 2);
+			nn.weights[i] = nn.weights[i] - learningRate * ( (nn.MW[i]/c1) / (((nn.VW[i]/c2)^0.5) + epsilon) );
+			nn.biases[i] = nn.biases[i] - learningRate * ( (nn.MB[i]/c1) / (((nn.VB[i]/c2)^0.5) + epsilon) );
 		}
 	}
 };

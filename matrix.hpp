@@ -21,7 +21,7 @@ public:
 
 	// Helpers
 	// Print the matrix
-	static void print(NNMatrix m) {
+	static void print(NNMatrix& m) {
 		for (int i = 0; i < m.rows(); i++) {
 			for (int j = 0; j < m.cols(); j++) {
 				std::cout << m[i][j] << " ";
@@ -64,7 +64,7 @@ public:
 	}
 	// Fill the matrix with a given value
 	void fill(double value) {
-		forEach([value](double *val, int i, int j) {
+		forEach([value](double *val, int, int) {
 			*val = value;
 		});
 	}
@@ -79,93 +79,129 @@ public:
 	}
 
 	// Operations
-	// Scalar addition
+	// Scalar Addition (Matrix + Scalar)
 	NNMatrix operator+(double scalar) const {
 		NNMatrix res = *this;
-		res.forEach([scalar](double *val, int i, int j) {
+		res.forEach([scalar](double *val, int, int) {
 			*val += scalar;
 		});
 		return res;
 	}
-	// Element-wise addition
+	// Scalar Addition (Scalar + Matrix)
+	friend NNMatrix operator+(double scalar, NNMatrix mat) {
+		return mat + scalar;
+	}
+	// Element-wise Addition (Matrix + Matrix)
 	NNMatrix operator+(const NNMatrix& other) const {
 		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix addition dimension mismatch: " +
-			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " + " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
 		NNMatrix res = *this;
-		res.forEach([other](double *val, int i, int j) {
+		res.forEach([&other](double *val, int i, int j) {
 			*val += other[i][j];
 		});
 		return res;
 	}
-	// Scalar subtraction
+	// Unary Negation (-Matrix)
+	NNMatrix operator-() const {
+		return *this * -1;
+	}
+	// Scalar Subtraction (Matrix - Scalar)
 	NNMatrix operator-(double scalar) const {
 		NNMatrix res = *this;
-		res.forEach([scalar](double *val, int i, int j) {
+		res.forEach([scalar](double *val, int, int) {
 			*val -= scalar;
 		});
 		return res;
 	}
-	// Element-wise subtraction
+	// Scalar Subtraction (Scalar - Matrix)
+	friend NNMatrix operator-(double scalar, NNMatrix mat) {
+		return scalar + -mat;
+	}
+	// Element-wise Subtraction (Matrix - Matrix)
 	NNMatrix operator-(const NNMatrix& other) const {
 		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix subtraction dimension mismatch: " +
-			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " - " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
 		NNMatrix res = *this;
-		res.forEach([other](double *val, int i, int j) {
+		res.forEach([&other](double *val, int i, int j) {
 			*val -= other[i][j];
 		});
 		return res;
 	}
-	// Scalar multiplication
+	// Scalar Multiplication (Matrix * Scalar)
 	NNMatrix operator*(double scalar) const {
 		NNMatrix res = *this;
-		res.forEach([scalar](double *val, int i, int j) {
+		res.forEach([scalar](double *val, int, int) {
 			*val *= scalar;
 		});
 		return res;
 	}
-	// Element-wise multiplication
+	// Scalar Multiplication (Scalar * Matrix) 
+	friend NNMatrix operator*(double scalar, NNMatrix mat) {
+		mat.forEach([scalar](double *val, int, int) {
+			*val *= scalar;
+		});
+		return mat;
+	}
+	// Element-wise Multiplication (Matrix * Matrix)
 	NNMatrix operator*(const NNMatrix& other) const {
 		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix multiplication dimension mismatch: " +
-			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " * " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
 		NNMatrix res = *this;
-		res.forEach([other](double *val, int i, int j) {
+		res.forEach([&other](double *val, int i, int j) {
 			*val *= other[i][j];
 		});
 		return res;
 	}
-	// Scalar division 
+	// Scalar Division (Matrix / Scalar) 
 	NNMatrix operator/(double scalar) const {
+		if (scalar == 0) throw std::runtime_error("Cannot divide matrix by 0");
 		NNMatrix res = *this;
-		res.forEach([scalar](double *val, int i, int j) {
+		res.forEach([scalar](double *val, int, int) {
 			*val /= scalar;
 		});
 		return res;
 	}
-	// Element-wise division
+	// Scalar Division (Scalar / Matrix)
+	friend NNMatrix operator/(double scalar, NNMatrix mat) {
+		mat.forEach([scalar](double *val, int, int) {
+			if (*val == 0) throw std::runtime_error("Cannot divide scalar by 0 element");
+			*val = scalar / *val;
+		});
+		return mat;
+	}
+	// Element-wise Division (Matrix / Matrix)
 	NNMatrix operator/(const NNMatrix& other) const {
-		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix dividion dimension mismatch: " +
-			std::to_string(rows()) + "x" + std::to_string(cols()) + " . " +
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("Matrix division dimension mismatch: " +
+			std::to_string(rows()) + "x" + std::to_string(cols()) + " / " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
 		NNMatrix res = *this;
-		res.forEach([other](double *val, int i, int j) {
+		res.forEach([&other](double *val, int i, int j) {
+			if (other[i][j] == 0) throw std::runtime_error("Cannot element-wise divide by 0");
 			*val /= other[i][j];
 		});
 		return res;
 	}
-	// Scalar exponent
+	// Scalar Exponent (Matrix ^ Scalar)
 	NNMatrix operator^(double scalar) const {
 		NNMatrix res = *this;
-		res.forEach([scalar](double *val, int i, int j) {
+		res.forEach([scalar](double *val, int, int) {
 			*val = std::pow(*val, scalar);
 		});
 		return res;
+	}
+	// Scalar Exponent (Scalar ^ Matrix)
+	friend NNMatrix operator^(double scalar, NNMatrix mat) {
+		mat.forEach([scalar](double *val, int, int) {
+			*val = std::pow(scalar, *val);
+		});
+		return mat;
 	}
 	// Access data directly (modifiable)
 	std::vector<double>& operator[](int row) {
@@ -207,10 +243,18 @@ public:
 	// Get the maximum value from the matrix
 	double max() {
 		double max = data[0][0];
-		forEach([&max](double *val, int i, int j) {
+		forEach([&max](double *val, int, int) {
 			max = std::max(*val, max);
 		});
 		return max;
+	}
+	// Get the sum of all elements in the matrix
+	double sum() {
+		double sum = 0;
+		forEach([&sum](double *val, int, int) {
+			sum += *val;
+		});
+		return sum;
 	}
 };
 
