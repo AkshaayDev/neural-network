@@ -1,5 +1,6 @@
 # Output file extensions
 *.exe
+*.out
 examples/xor/out.dat
 examples/inr/nn.dat
 examples/inr/res.png

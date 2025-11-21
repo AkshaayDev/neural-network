@@ -5,10 +5,11 @@
 - [Overview](#overview)
 - [Features](#features)
   1. [NNMatrix features](#1-nnmatrix-features)
-  2. [Initializations](#2-initializations)
-  3. [Activation functions](#3-activation-functions)
-  4. [Loss functions](#4-loss-functions)
-  5. [Optimizers](#5-optimizers)
+  2. [Layers](#2-layers)
+  3. [Initializations](#3-initializations)
+  4. [Activation functions](#4-activation-functions)
+  5. [Loss functions](#5-loss-functions)
+  6. [Optimizers](#6-optimizers)
 - [Usage](#usage)
   1. [Cloning and Including](#1-cloning-and-including)
   2. [Creating and Configuring the Network](#2-creating-and-configuring-the-network)
@@ -48,31 +49,37 @@ This project is experimental and for educational purposes.
 - `fill(double)` function to fill the matrix with the value
 - Check for `nan`s
 - Scalar and element-wise addition, subtraction, multiplication and division
-- Scalar element-wise exponent
+- Scalar exponentiation
 - Access data directly with `NNMatrix[row]`
 - Static dot product
 - Transpose of matrix
 - Maximum value of matrix
+- Element sum
 
-### 2. Initializations
+### 2. Layers
+
+- DenseLayer
+- ActivationLayer
+
+### 3. Initializations
 
 - Xavier (Normal/Uniform)
 - He (Normal/Uniform)
 - Constant biases
 
-### 3. Activation functions
+### 4. Activation functions
 
 - Sigmoid
 - ReLU
 - tanh
-- Softmax (output only)
+- Softmax
 
-### 4. Loss functions
+### 5. Loss functions
 
 - Mean Squared Error
 - Categorical Cross Entropy
 
-### 5. Optimizers
+### 6. Optimizers
 
 - Gradient Descent
 - Momentum
@@ -102,10 +109,11 @@ To create a network, define a `NeuralNetwork` object.
 NeuralNetwork nn;
 ```
 
-To set the density of each layer as well as network depth, use the `setLayers()` function.
+To set the network architecture, use the `addLayer()` function.
 
 ```c++
-nn.setLayers({2,2,2,1});
+nn.addLayer<DenseLayer>(2, 2); // This sets a dense layer that takes in and outputs 2 neurons
+nn.addLayer<ActivationLayer>(2, NNActivationType::Sigmoid); // Applies sigmoid activation to the 2 neurons
 ```
 
 To initialize the parameters of the network, use one of the functions from the `NNInitialization` namespace.
@@ -114,35 +122,40 @@ To initialize the parameters of the network, use one of the functions from the `
 NNInitialization::xavierNormal(nn);
 ```
 
-To set the hidden and output activation functions, use these functions:
+To set the loss function, use `setLossFunction()`.
 
 ```c++
-// This sets hidden layer activations to sigmoid and output layer activations to sigmoid
-nn.setActivationFunctions(NNActivationType::Sigmoid, NNActivationType::Sigmoid);
 // This sets the loss function to Mean Squared Error(MSE)
 nn.setLossFunction(NNLossType::MSE);
 ```
 
 ### 3. Running the Network
 
-To forward propagate an input, use `forwardPropagation()`.
-
-```c++
-// This performs forward propagation with the input and sets raw activations and activations
-nn.forwardPropagation(input /*(NNMatrix)*/);
-```
-
 To run the network, use `run()`.
 
 ```c++
-// This does not set anything and returns a NNMatrix output
-nn.run(input /*(NNMatrix)*/);
+// This does not set anything and returns the NNMatrix output of the network
+NNMatrix predicted = nn.run(input);
 ```
 
-To set partial derivatives, use `backwardPropagation()`.
+To forward propagate an input and set relevant last inputs and outputs for each layer, use `forwardPropagation()`.
 
 ```c++
-nn.backwardPropagation(input /*(NNMatrix)*/, target /*(NNMatrix)*/);
+// This performs forward propagation with the input and returns the network output
+NNMatix input;
+// Define `input` here
+NNMatrix predicted = nn.forwardPropagation(input);
+```
+
+To set parameter gradients, use `backwardPropagation()`.
+
+> Important: `forwardPropagation()` always has to be called to update activations before `backwardPropagation()`.
+> However, propagation is handled by the network during training.
+
+```c++
+NNMatrix real;
+// Define `real` here
+nn.backwardPropagation(predicted, real);
 ```
 
 ### 4. Saving and Loading
@@ -169,9 +182,9 @@ To train the network, a trainer object must be created and initialized with the 
 The batch is a `std::vector` of samples which is a `std::pair` of the input and output `NNMatrix`.
 
 ```c++
-std::vector<std::pair<NNMatrix, NNMatrix>> data;
+std::vector<std::pair<NNMatrix, NNMatrix>> batch;
 // Example sample that maps {{0},{0}} to {{0}}
-data.push_back(std::make_pair(NNMatrix::fromVector({0,0}), NNMatrix::fromScalar(0.0))); // 0 ^ 0 = 0
+batch.push_back(std::make_pair(NNMatrix::fromVector({0,0}), NNMatrix::fromScalar(0.0))); // 0 ^ 0 = 0
 
 NNTrainer trainer(nn, batch);
 ```
