@@ -59,20 +59,26 @@ public:
 	// Train the network using gradient descent (Requires learningRate)
 	inline void gradientDescent() {
 		// θ = θ - α * ∂L/∂θ
-		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.weights[i] = nn.weights[i] - learningRate * nn.avgDW[i];
-			nn.biases[i] = nn.biases[i] - learningRate * nn.avgDB[i];
+		for (int i = 0; i < nn.depth; i++) {
+			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
+				NNMatrix& param = nn.layers[i]->params[j];
+				NNMatrix& avgGrad = nn.avgGrads[i][j];
+				param = param - learningRate * avgGrad;
+			}
 		}
 	}
 	// Train the network using momentum (Requires learningRate, beta)
 	inline void momentum() {
 		// v = β * v + (1 - β) * ∂L/∂θ
 		// θ = θ - α * v
-		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.VW[i] = beta * nn.VW[i] + (1 - beta) * nn.avgDW[i];
-			nn.VB[i] = beta * nn.VB[i] + (1 - beta) * nn.avgDB[i];
-			nn.weights[i] = nn.weights[i] - learningRate * nn.VW[i];
-			nn.biases[i] = nn.biases[i] - learningRate * nn.VB[i];
+		for (int i = 0; i < nn.depth; i++) {
+			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
+				NNMatrix& param = nn.layers[i]->params[j];
+				NNMatrix& avgGrad = nn.avgGrads[i][j];
+				NNMatrix& v = nn.momentumV[i][j];
+				v = beta * v + (1 - beta) * avgGrad;
+				param = param - learningRate * v;
+			}
 		}
 	}
 	// Train the network using adam (adaptive moment estimation) (Requires learningRate, beta1, beta2, epsilon)
@@ -85,18 +91,21 @@ public:
 		// Correction coeffecients
 		double c1 = 1 - std::pow(beta1, nn.iterationsTrained + 1);
 		double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
-		for (int i = 0; i < nn.depth - 1; i++) {
-			nn.MW[i] = beta1 * nn.MW[i] + (1 - beta1) * nn.avgDW[i];
-			nn.MB[i] = beta1 * nn.MB[i] + (1 - beta1) * nn.avgDB[i];
-			nn.VW[i] = beta2 * nn.VW[i] + (1 - beta2) * (nn.avgDW[i] ^ 2);
-			nn.VB[i] = beta2 * nn.VB[i] + (1 - beta2) * (nn.avgDB[i] ^ 2);
-			nn.weights[i] = nn.weights[i] - learningRate * ( (nn.MW[i]/c1) / (((nn.VW[i]/c2)^0.5) + epsilon) );
-			nn.biases[i] = nn.biases[i] - learningRate * ( (nn.MB[i]/c1) / (((nn.VB[i]/c2)^0.5) + epsilon) );
+		for (int i = 0; i < nn.depth; i++) {
+			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
+				NNMatrix& param = nn.layers[i]->params[j];
+				NNMatrix& avgGrad = nn.avgGrads[i][j];
+				NNMatrix& m = nn.adamM[i][j];
+				NNMatrix& v = nn.adamV[i][j];
+				m = beta1 * m + (1 - beta1) * avgGrad;
+				v = beta2 * v + (1 - beta2) * (avgGrad ^ 2);
+				param = param - learningRate * (m/c1) / (((v/c2) ^ 0.5) + epsilon);
+			}
 		}
 	}
 };
 
-// Trainers are standalone functions and not network attributesyyy
+// Trainers are standalone functions and not network attributes
 // Therefore, the trainer function being used needs not be specified in the network
 
 #endif

@@ -6,11 +6,15 @@
 // In this example, we will be using a simple 2,2,2,1 architecture to approximate an XOR gate
 int main() {
 	NeuralNetwork nn;
-	nn.setLayers({2,2,2,1});
+	// Use sigmoid activations
+	nn.addLayer<DenseLayer>(2, 2);
+	nn.addLayer<ActivationLayer>(2, NNActivationType::Sigmoid);
+	nn.addLayer<DenseLayer>(2, 2);
+	nn.addLayer<ActivationLayer>(2, NNActivationType::Sigmoid);
+	nn.addLayer<DenseLayer>(2, 1);
+	nn.addLayer<ActivationLayer>(1, NNActivationType::Sigmoid);
 	// Initialize weights using the Xavier Normal initialization
 	NNInitialization::xavierNormal(nn);
-	// Use sigmoid activation function for hidden and output layers
-	nn.setActivationFunctions(NNActivationType::Sigmoid, NNActivationType::Sigmoid);
 	// Use Mean Squared Error loss function
 	nn.setLossFunction(NNLossType::MSE);
 	// Set training data for the network

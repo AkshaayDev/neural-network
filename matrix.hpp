@@ -17,7 +17,7 @@ public:
 
 	// Getters
 	int rows() const { return data.size(); }
-	int cols() const { return data[0].size(); }
+	int cols() const { return data.empty() ? 0 : data[0].size(); }
 
 	// Helpers
 	// Print the matrix

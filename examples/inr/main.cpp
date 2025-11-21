@@ -69,9 +69,13 @@ void loadImage() {
 // Then, it approximates a function f(x,y) => {r,g,b}
 // This script loads the image data, trains the network and creates a resulting image approximation
 int main() {
-	nn.setLayers({2,32,32,3});
+	nn.addLayer<DenseLayer>(2, 32);
+	nn.addLayer<ActivationLayer>(32, NNActivationType::Tanh);
+	nn.addLayer<DenseLayer>(32, 32);
+	nn.addLayer<ActivationLayer>(32, NNActivationType::Tanh);
+	nn.addLayer<DenseLayer>(32, 3);
+	nn.addLayer<ActivationLayer>(3, NNActivationType::Sigmoid);
 	NNInitialization::xavierNormal(nn);
-	nn.setActivationFunctions(NNActivationType::Tanh, NNActivationType::Sigmoid);
 	nn.setLossFunction(NNLossType::MSE);
 
 	// If there exists a data file `./nn.dat`, read from it

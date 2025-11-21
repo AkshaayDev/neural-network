@@ -23,7 +23,7 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 	// Read image magic number
 	images.read((char*)&magicNumber, sizeof(magicNumber)); magicNumber = reverseInt(magicNumber);
 	if(magicNumber != 2051) throw std::runtime_error("Invalid MNIST image file!");
-	// Read total number of imagaes, rows and columns
+	// Read total number of images, rows and columns
 	images.read((char*)&totalImages, sizeof(totalImages)), totalImages = reverseInt(totalImages);
 	images.read((char*)&rows, sizeof(rows)), rows = reverseInt(rows);
 	images.read((char*)&cols, sizeof(cols)), cols = reverseInt(cols);
@@ -111,8 +111,12 @@ int main() {
 			std::cout << "Testing images loaded\n";
 		}
 	}
-	nn.setLayers({784,128,64,10});
-	nn.setActivationFunctions(NNActivationType::ReLU, NNActivationType::Softmax);
+	nn.addLayer<DenseLayer>(784, 128);
+	nn.addLayer<ActivationLayer>(128, NNActivationType::ReLU);
+	nn.addLayer<DenseLayer>(128, 64);
+	nn.addLayer<ActivationLayer>(64, NNActivationType::ReLU);
+	nn.addLayer<DenseLayer>(64, 10);
+	nn.addLayer<ActivationLayer>(128, NNActivationType::Softmax);
 	nn.setLossFunction(NNLossType::CCE);
 	NNInitialization::heNormal(nn);
 	

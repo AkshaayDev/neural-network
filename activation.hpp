@@ -7,69 +7,69 @@ namespace NNActivation {
 	// Sigmoid activation function
 	// σ(x) = 1 / (1 + e^-x)
 	inline NNMatrix sigmoid(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			*val = 1.0 / (1.0 + std::exp(-*val));
+		input.forEach([](double* x, int, int) {
+			*x = 1.0 / (1.0 + std::exp(-*x));
 		});
 		return input;
 	}
 	// Derivative of sigmoid activation function
-	// σ'(x) = σ(x) * (1 - σ(x))
-	inline NNMatrix sigmoidDerivative(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			double sigma = 1.0 / (1.0 + std::exp(-*val));
-			*val = sigma * (1.0 - sigma);
-		});
-		return input;
+	// σ'(x) = y * (1 - y)
+	inline NNMatrix sigmoidDerivative(NNMatrix output) {
+		return output * (1.0 - output);
 	}
 	// ReLU activation function
 	// ReLU(x) = max(0, x)
 	inline NNMatrix relu(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			*val = std::max(0.0, *val);
+		input.forEach([](double* x, int, int) {
+			*x = std::max(0.0, *x);
 		});
 		return input;
 	}
 	// Derivative of ReLU activation function
-	// ReLU'(x) = x if x > 0 else 0
-	inline NNMatrix reluDerivative(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			*val = *val > 0.0 ? 1.0 : 0.0;
+	// ReLU'(x) = 1 if y > 0 else 0
+	inline NNMatrix reluDerivative(NNMatrix output) {
+		output.forEach([](double* y, int, int) {
+			*y = *y > 0.0 ? 1.0 : 0.0;
 		});
-		return input;
+		return output;
 	}
 	// Hyperbolic tangent activation function
 	// tanh(x) = (e^x-e^-x)/(e^x+e^-x)
 	inline NNMatrix tanh(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			*val = std::tanh(*val);
+		input.forEach([](double* x, int, int) {
+			*x = std::tanh(*x);
 		});
 		return input;
 	}
 	// Derivative of hyperbolic tangent activation function
-	// tanh'(x) = 1 - tanh(x)^2
-	inline NNMatrix tanhDerivative(NNMatrix input) {
-		input.forEach([](double* val, int, int) {
-			*val = 1 - std::pow(std::tanh(*val), 2);
-		});
-		return input;
+	// Let y = tanh(x)
+	// tanh'(x) = 1 - y^2
+	inline NNMatrix tanhDerivative(NNMatrix output) {
+		return 1 - (output ^ 2);
 	}
-	// Softmax activation function (output only)
-	// softmax(Z)_i = e^(z_i) / sum_j=1^N e^(z_j)
+	// Softmax activation function
+	// softmax(X)_i = e^(X_i) / sum_j=1^N e^(X_j)
 	inline NNMatrix softmax(NNMatrix input) {
 		double sum = 0;
 		double max = input.max();
-		input.forEach([&sum, max, &input](double* val, int, int) {
-			*val = std::exp(*val - max); // Subtract max for numerical stability while maintaining output
-			sum += *val;
+		input.forEach([&sum, max, &input](double* x, int, int) {
+			*x = std::exp(*x - max); // Subtract max for numerical stability while maintaining output
+			sum += *x;
 		});
 		return input / sum;
 	}
-	// There is no softmax activation function derivative
-	// Each preactivation affects every activation so the derivative would be a Jacobian matrix(n x n)
-	// Instead, the NeuralNetwork class handles its derivative for cross entropy loss
+	// Derivative of softmax activation function
+	// This derivative is special as it directly gives the p.d. of the loss w.r.t. the input
+	// This derivative is a simplification of the actual derivative which is a Jacobian matrix
+	// Let y_i = softmax(X)_i and dy be the p.d. of the loss w.r.t. to y
+	// softmax'(X) = y(dy - s) where s = y^T . dy
+	inline NNMatrix softmaxDerivative(NNMatrix output, NNMatrix dy) {
+		double s = NNMatrix::dot(output.transpose(), dy)[0][0];
+		return output * (dy - s);
+	}
 }
 
-// Activation functions are network attributesy and need to be specified in the network
+// Activation functions are network attributes and need to be specified in the network
 // The strings in this namespace are used to identify the activation functions of the network for saving and loading
 namespace NNActivationType {
 	const std::string Sigmoid = "sigmoid";
