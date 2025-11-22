@@ -70,6 +70,27 @@ namespace NNInitialization {
 		}
 		nn.iterationsTrained = nn.epochsTrained = 0;
 	}
+	// SIREN weight initialization
+	// Initialize first layer omega0 with 30.0 by default and weights uniformly across +- 1/in
+	// Initialize other layer weights uniformly across +- sqrt(6/in)/omega0
+	inline void SIRENInit(NeuralNetwork& nn, double omega0 = 30.0) {
+		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+		for (int i = 0; i < nn.depth; i++) {
+			SIRENLayer* layer = dynamic_cast<SIRENLayer*>(nn.layers[i].get());
+			if (layer == nullptr) continue; // Continue for non-SIRENLayers
+
+			double limit = std::sqrt(6.0 / layer->inCount) / layer->omega0;
+			if (i == 0) {
+				limit = 1.0 / layer->inCount;
+				layer->omega0 = omega0;
+			}
+			std::uniform_real_distribution<double> dis(-limit, limit);
+			layer->W.forEach([&dis, &gen](double *val, int, int) {
+				*val = dis(gen);
+			});
+		}
+		nn.iterationsTrained = nn.epochsTrained = 0;
+	}
 
 	// Bias initialization functions
 
