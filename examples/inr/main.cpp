@@ -87,6 +87,7 @@ int main() {
 	loadImage();
 	NNTrainer trainer(nn, batch);
 	trainer.epochCallback = []() { std::cout << "Epoch " << nn.epochsTrained << "\n"; };
+	trainer.sampleSize = 128;
 	trainer.train(NNOptimizerType::Adam, 100);
 	std::cout << "Training finished." << std::endl;
 	createImage("./res.png");
