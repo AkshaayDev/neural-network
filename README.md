@@ -60,11 +60,13 @@ This project is experimental and for educational purposes.
 
 - DenseLayer
 - ActivationLayer
+- SIRENLayer
 
 ### 3. Initializations
 
 - Xavier (Normal/Uniform)
 - He (Normal/Uniform)
+- SIREN weights
 - Constant biases
 
 ### 4. Activation functions
