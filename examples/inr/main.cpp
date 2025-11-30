@@ -74,8 +74,8 @@ int main() {
 	nn.addLayer<SIRENLayer>(2, 32);
 	nn.addLayer<SIRENLayer>(32, 32);
 	nn.addLayer<DenseLayer>(32, 3);
-	NNInitialization::xavierUniform(nn);
 	NNInitialization::SIRENInit(nn);
+	NNInitialization::xavierUniform(nn);
 	nn.setLossFunction(NNLossType::MSE);
 
 	// If there exists a data file `./nn.dat`, read from it
