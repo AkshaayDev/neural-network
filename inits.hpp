@@ -4,12 +4,16 @@
 #include "./neural-network.hpp"
 
 namespace NNInitialization {
+	// Helper functions for initializations
+	unsigned int getSeed() {
+		return static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+	}
 	// Weight initialization functions
 
 	// Uniform Xavier initialization
 	// Initialize weights uniformly across +- sqrt(6/(in + out))
-	inline void xavierUniform(NeuralNetwork& nn) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	inline void xavierUniform(NeuralNetwork& nn, unsigned int seed = getSeed()) {
+		std::mt19937 gen(seed);
 		for (int i = 0; i < nn.depth; i++) {
 			DenseLayer* layer = dynamic_cast<DenseLayer*>(nn.layers[i].get());
 			if (layer == nullptr) continue; // Continue for non-DenseLayers
@@ -24,8 +28,8 @@ namespace NNInitialization {
 	}
 	// Normal Xavier initialization
 	// Initialize weights with a normal distribution with mean of 0 and standard deviation of sqrt(2/(in + out))
-	inline void xavierNormal(NeuralNetwork& nn) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	inline void xavierNormal(NeuralNetwork& nn, unsigned int seed = getSeed()) {
+		std::mt19937 gen(seed);
 		for (int i = 0; i < nn.depth; i++) {
 			DenseLayer* layer = dynamic_cast<DenseLayer*>(nn.layers[i].get());
 			if (layer == nullptr) continue; // Continue for non-DenseLayers
@@ -40,8 +44,8 @@ namespace NNInitialization {
 	}
 	// Uniform He initialization
 	// Initialize weights uniformly across +- sqrt(6/in)
-	inline void heUniform(NeuralNetwork& nn) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	inline void heUniform(NeuralNetwork& nn, unsigned int seed = getSeed()) {
+		std::mt19937 gen(seed);
 		for (int i = 0; i < nn.depth; i++) {
 			DenseLayer* layer = dynamic_cast<DenseLayer*>(nn.layers[i].get());
 			if (layer == nullptr) continue; // Continue for non-DenseLayers
@@ -56,8 +60,8 @@ namespace NNInitialization {
 	}
 	// Normal He initialization
 	// Initialize weights with a normal distribution with mean of 0 and standard deviation of sqrt(2/in)
-	inline void heNormal(NeuralNetwork& nn) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	inline void heNormal(NeuralNetwork& nn, unsigned int seed = getSeed()) {
+		std::mt19937 gen(seed);
 		for (int i = 0; i < nn.depth; i++) {
 			DenseLayer* layer = dynamic_cast<DenseLayer*>(nn.layers[i].get());
 			if (layer == nullptr) continue; // Continue for non-DenseLayers
@@ -73,8 +77,8 @@ namespace NNInitialization {
 	// SIREN parameter initialization
 	// Initialize first SIREN layer omega0 with 30.0 by default and parameters uniformly across +- 1/in
 	// Initialize other SIREN layer parameters uniformly across +- sqrt(6/in)/omega0
-	inline void SIRENInit(NeuralNetwork& nn, double omega0 = 30.0) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	inline void SIRENInit(NeuralNetwork& nn, double omega0 = 30.0, unsigned int seed = getSeed()) {
+		std::mt19937 gen(seed);
 		for (int i = 0; i < nn.depth; i++) {
 			SIRENLayer* layer = dynamic_cast<SIRENLayer*>(nn.layers[i].get());
 			if (layer == nullptr) continue; // Continue for non-SIRENLayers

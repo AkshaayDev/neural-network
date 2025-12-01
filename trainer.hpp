@@ -30,8 +30,8 @@ public:
 	bool enableShuffling = true;
 
 	// Train the network
-	void train(NNOptimizerType optimizer, int epochs) {
-		std::mt19937 gen(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+	void train(NNOptimizerType optimizer, int epochs, unsigned int shuffleSeed = std::chrono::system_clock::now().time_since_epoch().count()) {
+		std::mt19937 gen(shuffleSeed);
 		int actualSize = (sampleSize == -1) ? batch.size() : sampleSize;
 
 		for (int epoch = 1; epoch <= epochs; epoch++) {
