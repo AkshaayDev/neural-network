@@ -24,7 +24,7 @@ void createImage(const char* outPath) {
 			int idx = i * outWidth + j;
 			double y = static_cast<double>(i) / (outHeight - 1) * 2 - 1;
 			double x = static_cast<double>(j) / (outWidth - 1) * 2 - 1;
-			NNMatrix rgb = nn.run(NNMatrix::fromVector({x, y}));
+			Matrix rgb = nn.run(Matrix::fromVector({x, y}));
 			for (int c = 0; c < 3; c++) {
 				// Normalize and clamp from (-1, 1) to (0, 255)
 				double pixel = (rgb[c][0] + 1) * 127.5;
@@ -37,7 +37,7 @@ void createImage(const char* outPath) {
 	data = nullptr;
 }
 
-std::vector<std::pair<NNMatrix, NNMatrix>> batch;
+std::vector<std::pair<Matrix, Matrix>> batch;
 
 // Load a the image from `imgPath` and create training batch data
 void loadImage() {
@@ -51,10 +51,10 @@ void loadImage() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			int idx = i * width + j;
-			std::pair<NNMatrix, NNMatrix> sample;
+			std::pair<Matrix, Matrix> sample;
 			double y = static_cast<double>(i) / (height - 1) * 2 - 1;
 			double x = static_cast<double>(j) / (width - 1) * 2 - 1;
-			sample.first = NNMatrix::fromVector({x, y});
+			sample.first = Matrix::fromVector({x, y});
 			sample.second.resize(3,1);
 			for (int c = 0; c < 3; c++) {
 				// Normalize from (0, 255) to (-1, -1)
@@ -74,9 +74,9 @@ int main() {
 	nn.addLayer<SIRENLayer>(2, 32);
 	nn.addLayer<SIRENLayer>(32, 32);
 	nn.addLayer<DenseLayer>(32, 3);
-	NNInitialization::SIRENInit(nn);
-	NNInitialization::xavierUniform(nn);
-	nn.setLossFunction(NNLossType::MSE);
+	Initialization::SIRENInit(nn);
+	Initialization::xavierUniform(nn);
+	nn.setLossFunction(LossType::MSE);
 
 	// If there exists a data file `./nn.dat`, read from it
 	std::ifstream in("./nn.dat", std::ios::binary);
@@ -85,10 +85,10 @@ int main() {
 
 	// Train the network with adam
 	loadImage();
-	NNTrainer trainer(nn, batch);
+	Trainer trainer(nn, batch);
 	trainer.epochCallback = []() { std::cout << "Epoch " << nn.epochsTrained << "\n"; };
 	trainer.sampleSize = 128;
-	trainer.train(NNOptimizerType::Adam, 100);
+	trainer.train(OptimizerType::Adam, 100);
 	std::cout << "Training finished." << std::endl;
 	createImage("./res.png");
 

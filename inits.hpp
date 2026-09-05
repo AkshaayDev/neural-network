@@ -3,7 +3,7 @@
 
 #include "./neural-network.hpp"
 
-namespace NNInitialization {
+namespace Initialization {
 	// Helper functions for initializations
 	unsigned int getSeed() {
 		return static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -89,7 +89,7 @@ namespace NNInitialization {
 				layer->omega0 = omega0;
 			}
 			std::uniform_real_distribution<double> dis(-limit, limit);
-			for (NNMatrix& param : layer->params) {
+			for (Matrix& param : layer->params) {
 				param.forEach([&dis, &gen](double *val, int, int) {
 					*val = dis(gen);
 				});

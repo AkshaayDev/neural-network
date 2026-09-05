@@ -3,16 +3,16 @@
 
 #include "./neural-network.hpp"
 
-enum class NNOptimizerType { GradientDescent, Momentum, Adam };
+enum class OptimizerType { GradientDescent, Momentum, Adam };
 
-class NNTrainer {
+class Trainer {
 public:
 	NeuralNetwork& nn;
-	std::vector<std::pair<NNMatrix, NNMatrix>>& batch;
+	std::vector<std::pair<Matrix, Matrix>>& batch;
 	std::function<void()> iterationCallback = []() {};
 	std::function<void()> epochCallback = []() {};
 	// Network reference and batch reference constructor
-	NNTrainer(NeuralNetwork& nn, std::vector<std::pair<NNMatrix, NNMatrix>>& batch) : nn(nn), batch(batch) {}
+	Trainer(NeuralNetwork& nn, std::vector<std::pair<Matrix, Matrix>>& batch) : nn(nn), batch(batch) {}
 	// Used for gradient descent, momentum and adam (Default 0.001)
 	double learningRate = 0.001;
 	// Used for momentum (Default 0.9)
@@ -30,22 +30,22 @@ public:
 	bool enableShuffling = true;
 
 	// Train the network
-	void train(NNOptimizerType optimizer, int epochs, unsigned int shuffleSeed = std::chrono::system_clock::now().time_since_epoch().count()) {
+	void train(OptimizerType optimizer, int epochs, unsigned int shuffleSeed = std::chrono::system_clock::now().time_since_epoch().count()) {
 		std::mt19937 gen(shuffleSeed);
 		int actualSize = (sampleSize == -1) ? batch.size() : sampleSize;
 
 		for (int epoch = 1; epoch <= epochs; epoch++) {
 			if (enableShuffling) std::shuffle(batch.begin(), batch.end(), gen);
 			for (int i = 0; i < batch.size(); i += actualSize) {
-				std::vector<std::pair<NNMatrix, NNMatrix>> sample(
+				std::vector<std::pair<Matrix, Matrix>> sample(
 					batch.begin() + i,
 					batch.begin() + std::min(i + actualSize, static_cast<int>(batch.size()))
 				);
 				nn.averagePDs(sample);
 				switch (optimizer) {
-					case NNOptimizerType::GradientDescent: gradientDescent(); break;
-					case NNOptimizerType::Momentum: momentum(); break;
-					case NNOptimizerType::Adam: adam(); break;
+					case OptimizerType::GradientDescent: gradientDescent(); break;
+					case OptimizerType::Momentum: momentum(); break;
+					case OptimizerType::Adam: adam(); break;
 					default: throw std::runtime_error("Unknown optimizer value");
 				}
 				nn.iterationsTrained++;
@@ -61,8 +61,8 @@ public:
 		// θ = θ - α * ∂L/∂θ
 		for (int i = 0; i < nn.depth; i++) {
 			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
-				NNMatrix& param = nn.layers[i]->params[j];
-				NNMatrix& avgGrad = nn.avgGrads[i][j];
+				Matrix& param = nn.layers[i]->params[j];
+				Matrix& avgGrad = nn.avgGrads[i][j];
 				param = param - learningRate * avgGrad;
 			}
 		}
@@ -73,9 +73,9 @@ public:
 		// θ = θ - α * v
 		for (int i = 0; i < nn.depth; i++) {
 			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
-				NNMatrix& param = nn.layers[i]->params[j];
-				NNMatrix& avgGrad = nn.avgGrads[i][j];
-				NNMatrix& v = nn.momentumV[i][j];
+				Matrix& param = nn.layers[i]->params[j];
+				Matrix& avgGrad = nn.avgGrads[i][j];
+				Matrix& v = nn.momentumV[i][j];
 				v = beta * v + (1 - beta) * avgGrad;
 				param = param - learningRate * v;
 			}
@@ -93,10 +93,10 @@ public:
 		double c2 = 1 - std::pow(beta2, nn.iterationsTrained + 1);
 		for (int i = 0; i < nn.depth; i++) {
 			for (int j = 0; j < nn.layers[i]->params.size(); j++) {
-				NNMatrix& param = nn.layers[i]->params[j];
-				NNMatrix& avgGrad = nn.avgGrads[i][j];
-				NNMatrix& m = nn.adamM[i][j];
-				NNMatrix& v = nn.adamV[i][j];
+				Matrix& param = nn.layers[i]->params[j];
+				Matrix& avgGrad = nn.avgGrads[i][j];
+				Matrix& m = nn.adamM[i][j];
+				Matrix& v = nn.adamV[i][j];
 				m = beta1 * m + (1 - beta1) * avgGrad;
 				v = beta2 * v + (1 - beta2) * (avgGrad ^ 2);
 				param = param - learningRate * (m/c1) / (((v/c2) ^ 0.5) + epsilon);

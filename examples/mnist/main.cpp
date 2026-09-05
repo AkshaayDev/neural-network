@@ -7,7 +7,7 @@
 
 // Returns the dataset of from `imgPath` and `lblPath`
 // Adapted from https://stackoverflow.com/questions/8286668/how-to-read-mnist-data-in-c
-std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::string lblPath) {
+std::vector<std::pair<Matrix, Matrix>> loadMNIST(std::string imgPath, std::string lblPath) {
 	auto reverseInt = [](int i) {
 		unsigned char c1, c2, c3, c4;
 		c1 = i & 255, c2 = (i >> 8) & 255, c3 = (i >> 16) & 255, c4 = (i >> 24) & 255;
@@ -38,14 +38,14 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 		throw std::runtime_error(std::to_string(totalImages) + " images found but " + std::to_string(totalLabels) + " labels found.");
 	}
 
-	std::vector<std::pair<NNMatrix, NNMatrix>> dataset(totalImages);
+	std::vector<std::pair<Matrix, Matrix>> dataset(totalImages);
 	for (int i = 0; i < totalImages; i++) {
 		// Form a label column matrix
 		unsigned char label;
 		labels.read((char*)&label, sizeof(label));
 		std::vector<double> expected(10, 0);
 		expected[static_cast<int>(label)] = 1;
-		std::pair<NNMatrix, NNMatrix> pair(NNMatrix(rows*cols, 1), NNMatrix::fromVector(expected));
+		std::pair<Matrix, Matrix> pair(Matrix(rows*cols, 1), Matrix::fromVector(expected));
 		// Read normalized pixel grayscale data
 		for (int r = 0; r < rows; r++) {
 			for (int c = 0; c < cols; c++) {
@@ -60,7 +60,7 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 }
 
 NeuralNetwork nn;
-std::vector<std::pair<NNMatrix, NNMatrix>> trainset, testset;
+std::vector<std::pair<Matrix, Matrix>> trainset, testset;
 
 // Calculate average loss of the test set (Uses multithreading if OpenMP is used)
 double avgLoss() {
@@ -112,13 +112,13 @@ int main() {
 		}
 	}
 	nn.addLayer<DenseLayer>(784, 128);
-	nn.addLayer<ActivationLayer>(128, NNActivationType::ReLU);
+	nn.addLayer<ActivationLayer>(128, ActivationType::ReLU);
 	nn.addLayer<DenseLayer>(128, 64);
-	nn.addLayer<ActivationLayer>(64, NNActivationType::ReLU);
+	nn.addLayer<ActivationLayer>(64, ActivationType::ReLU);
 	nn.addLayer<DenseLayer>(64, 10);
-	nn.addLayer<ActivationLayer>(128, NNActivationType::Softmax);
-	nn.setLossFunction(NNLossType::CCE);
-	NNInitialization::heNormal(nn);
+	nn.addLayer<ActivationLayer>(128, ActivationType::Softmax);
+	nn.setLossFunction(LossType::CCE);
+	Initialization::heNormal(nn);
 	
 	// If there exists a data file `./nn.dat`, read from it
 	std::ifstream in("./nn.dat", std::ios::binary);
@@ -128,10 +128,10 @@ int main() {
 	std::cout << "Training starting after " << nn.epochsTrained << " epochs and " << nn.iterationsTrained << " iterations.\n";
 	std::cout << "Current average testset loss: " << avgLoss() << '\n';
 	// The loss is usually around log_e(1/10) or ~2.30 after initialization
-	NNTrainer trainer(nn, trainset);
+	Trainer trainer(nn, trainset);
 	trainer.sampleSize = 128;
 	trainer.iterationCallback = iterationCallback;
 	trainer.epochCallback = epochCallback;
-	trainer.train(NNOptimizerType::Adam, 30);
+	trainer.train(OptimizerType::Adam, 30);
 	std::cout << "Training finished." << std::endl;
 }

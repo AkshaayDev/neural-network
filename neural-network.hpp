@@ -25,14 +25,14 @@ public:
 	int iterationsTrained = 0, epochsTrained = 0;
 
 	// Averaged gradients of each layer
-	std::vector<std::vector<NNMatrix>> avgGrads;
+	std::vector<std::vector<Matrix>> avgGrads;
 	// Momentum buffers for training
-	std::vector<std::vector<NNMatrix>> momentumV, adamM, adamV;
+	std::vector<std::vector<Matrix>> momentumV, adamM, adamV;
 
 	// Loss function for the network
 	std::string lossFnName;
-	std::function<double(NNMatrix, NNMatrix)> lossFn;
-	std::function<NNMatrix(NNMatrix, NNMatrix)> lossFnDerivative;
+	std::function<double(Matrix, Matrix)> lossFn;
+	std::function<Matrix(Matrix, Matrix)> lossFnDerivative;
 
 	// Setters
 
@@ -40,7 +40,7 @@ public:
 	template<typename LayerType, typename... Args>
 	void addLayer(Args&&... args) {
 		layers.push_back(std::make_unique<LayerType>(std::forward<Args>(args)...));
-		std::vector<NNMatrix>& lastGrads = layers.back()->grads;
+		std::vector<Matrix>& lastGrads = layers.back()->grads;
 		// Pushing back the gradients directly works because they have just been initialized
 		avgGrads.push_back(lastGrads);
 		momentumV.push_back(lastGrads);
@@ -50,27 +50,27 @@ public:
 	}
 
 	// Set the loss function of the network
-	// Pass NNLossType as argument
+	// Pass LossType as argument
 	void setLossFunction(std::string loss) {
-		if (loss == NNLossType::MSE) {
-			lossFn = NNLoss::MSE;
-			lossFnDerivative = NNLoss::MSEDerivative;
-		} else if (loss == NNLossType::CCE) {
-			lossFn = NNLoss::CCE;
-			lossFnDerivative = NNLoss::CCEDerivative;
+		if (loss == LossType::MSE) {
+			lossFn = Loss::MSE;
+			lossFnDerivative = Loss::MSEDerivative;
+		} else if (loss == LossType::CCE) {
+			lossFn = Loss::CCE;
+			lossFnDerivative = Loss::CCEDerivative;
 		} else throw std::runtime_error("Unknown loss function ('" + loss + "')");
 		lossFnName = loss;
 	}
 
 	// Accumulate and average the partial derivatives for each sample in the batch
-	void averagePDs(std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
+	void averagePDs(std::vector<std::pair<Matrix, Matrix>> batch) {
 		for (int i = 0; i < depth; i++) {
-			for (NNMatrix& avgGrad : avgGrads[i]) {
+			for (Matrix& avgGrad : avgGrads[i]) {
 				avgGrad.fill(0);
 			}
 		}
-		for (std::pair<NNMatrix, NNMatrix> sample : batch) {
-			NNMatrix predicted = forwardPropagation(sample.first);
+		for (std::pair<Matrix, Matrix> sample : batch) {
+			Matrix predicted = forwardPropagation(sample.first);
 			backwardPropagation(predicted, sample.second);
 			for (int i = 0; i < depth; i++) {
 				for (int j = 0; j < layers[i]->grads.size(); j++) {
@@ -79,14 +79,14 @@ public:
 			}
 		}
 		for (int i = 0; i < depth; i++) {
-			for (NNMatrix& avgGrad : avgGrads[i]) {
+			for (Matrix& avgGrad : avgGrads[i]) {
 				avgGrad = avgGrad / batch.size();
 			}
 		}
 	}
 
 	// Performs a feed forward without storing inputs or outputs
-	NNMatrix run(NNMatrix input) {
+	Matrix run(Matrix input) {
 		if (layers.empty()) throw std::runtime_error("Cannot run an empty network");
 		for (auto& layer : layers) {
 			input = layer->run(input);
@@ -94,7 +94,7 @@ public:
 		return input;
 	}
 	// Sets layer inputs and outputs after forward propagation of an input and returns network output
-	NNMatrix forwardPropagation(NNMatrix input) {
+	Matrix forwardPropagation(Matrix input) {
 		if (layers.empty()) throw std::runtime_error("Cannot forward propagate through an empty network");
 		for (auto& layer : layers) {
 			input = layer->forward(input);
@@ -103,9 +103,9 @@ public:
 	}
 	// Sets the layer gradients (partial derivatives of the loss with respect to its parameters)
 	// Note: forward propagation has to be called first and its recommended to pass its return value as `predicted`
-	void backwardPropagation(NNMatrix predicted, NNMatrix real) {
+	void backwardPropagation(Matrix predicted, Matrix real) {
 		if (layers.empty()) throw std::runtime_error("Cannot backward propagate through an empty network");
-		NNMatrix dy = lossFnDerivative(predicted, real);
+		Matrix dy = lossFnDerivative(predicted, real);
 		for (int i = depth - 1; i >= 0; i--) {
 			dy = layers[i]->backward(dy);
 		}
@@ -149,7 +149,7 @@ public:
 		for (int i = 0; i < depth; i++) {
 			std::unique_ptr<Layer> layer = Layer::load(in);
 			layers.emplace_back(std::move(layer));
-			std::vector<NNMatrix>& lastGrads = layers.back()->grads;
+			std::vector<Matrix>& lastGrads = layers.back()->grads;
 			// Pushing back the gradients directly works because they have just been initialized
 			avgGrads.push_back(lastGrads);
 			momentumV.push_back(lastGrads);
@@ -176,9 +176,9 @@ public:
 	}
 private:
 	// Helper to write a moment tensor to an output file stream (Assumes tensor dimensions are known)
-	void saveTrainingMoment(std::vector<std::vector<NNMatrix>>& moment, std::ofstream& out) {
-		for (std::vector<NNMatrix>& layerMoment : moment) {
-			for (NNMatrix& gradMoment : layerMoment) {
+	void saveTrainingMoment(std::vector<std::vector<Matrix>>& moment, std::ofstream& out) {
+		for (std::vector<Matrix>& layerMoment : moment) {
+			for (Matrix& gradMoment : layerMoment) {
 				gradMoment.forEach([&out](double *val, int, int) {
 					out.write(reinterpret_cast<const char*>(val), sizeof(double));
 				});
@@ -186,9 +186,9 @@ private:
 		}
 	}
 	// Helper to read a moment tensor from an input file stream (Assumes tensor has correct dimensions)
-	void loadTrainingMoment(std::vector<std::vector<NNMatrix>>& moment, std::ifstream& in) {
-		for (std::vector<NNMatrix>& layerMoment : moment) {
-			for (NNMatrix& gradMoment : layerMoment) {
+	void loadTrainingMoment(std::vector<std::vector<Matrix>>& moment, std::ifstream& in) {
+		for (std::vector<Matrix>& layerMoment : moment) {
+			for (Matrix& gradMoment : layerMoment) {
 				for (int i = 0; i < gradMoment.rows(); i++) {
 					in.read(reinterpret_cast<char*>(gradMoment[i].data()), gradMoment.cols() * sizeof(double));
 				}

@@ -15,7 +15,7 @@ Right Mouse: Black brush/Erase
 #include "../../neural-network.hpp"
 #include "raylib.h"
 
-NNMatrix pixels(28 * 28, 1);
+Matrix pixels(28 * 28, 1);
 const int pixelScale = 20;
 const int brushSize = 2;
 
@@ -89,7 +89,7 @@ int main() {
 		DrawText("\'C\' Key: Clear canvas", 10, 50, 20, DARKGRAY);
 
 		// Draw the predictions
-		NNMatrix res = nn.run(pixels);
+		Matrix res = nn.run(pixels);
 		for (int i = 0; i < 10; i++) {
 			int x = 28 * pixelScale + 40;
 			int y = 50 + i * 50;
