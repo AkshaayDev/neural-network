@@ -3,8 +3,6 @@
 
 #include "./neural-network.hpp"
 
-enum class OptimizerType { GradientDescent, Momentum, Adam };
-
 class Trainer {
 public:
 	NeuralNetwork& nn;

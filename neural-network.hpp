@@ -17,6 +17,8 @@
 #include "./loss.hpp"
 #include "./layer.hpp"
 
+enum class OptimizerType { GradientDescent, Momentum, Adam };
+
 class NeuralNetwork {
 public:
 	static const uint32_t SIGNATURE = 0x4E4E4454; // "NNDT", Used for validating data files
@@ -112,8 +114,10 @@ public:
 		}
 	}
 
-	// Save the parameters and architecture to an output file stream with an option to include the training state
-	void save(std::ofstream& out, bool includeTrainingData = false) {
+	// Save the parameters, architecture and optionally moments to an output file stream
+	// `optimization` saves the moments for the optimization type 
+	// (Default is `OptimizerType::GradientDescent` as it has no moments)
+	void save(std::ofstream& out, OptimizerType optimization = OptimizerType::GradientDescent) {
 		// Write the signature
 		uint32_t sig = SIGNATURE;
 		out.write(reinterpret_cast<const char*>(&sig), sizeof(uint32_t));
@@ -130,16 +134,21 @@ public:
 		// Write the iterations and epochs trained
 		out.write(reinterpret_cast<const char*>(&iterationsTrained), sizeof(int));
 		out.write(reinterpret_cast<const char*>(&epochsTrained), sizeof(int));
-		// Write whether training state is included
-		out.write(reinterpret_cast<const char*>(&includeTrainingData), sizeof(bool));
-		if (includeTrainingData) {
-			saveTrainingMoment(momentumV, out);
-			saveTrainingMoment(adamM, out);
-			saveTrainingMoment(adamV, out);
+		// Write moments for the optimization
+		// Note: This assumes the number for each OptimizerType is 0-255
+		out.write(reinterpret_cast<const char*>(&optimization), sizeof(uint8_t));
+		switch (optimization) {
+			case OptimizerType::Momentum:
+				saveTrainingMoment(momentumV, out);
+				break;
+			case OptimizerType::Adam:
+				saveTrainingMoment(adamM, out);
+				saveTrainingMoment(adamV, out);
+				break;
 		}
 	}
 	
-	// Load the parameters and architecture from an input file stream
+	// Load the parameters, architecture and optionally moments from an input file stream
 	void load(std::ifstream& in) {
 		// Read the signature
 		uint32_t sig;
@@ -173,13 +182,18 @@ public:
 		// Read the iterations and epochs trained
 		in.read(reinterpret_cast<char*>(&iterationsTrained), sizeof(int));
 		in.read(reinterpret_cast<char*>(&epochsTrained), sizeof(int));
-		// Read whether training data in included
-		bool hasTrainingData = false;
-		in.read(reinterpret_cast<char*>(&hasTrainingData), sizeof(bool));
-		if (hasTrainingData) {
+		// Read the optimization moments
+		// Note: This assumes the number for each OptimizerType is 0-255
+		uint8_t optimization;
+		in.read(reinterpret_cast<char*>(&optimization), sizeof(uint8_t));
+		switch (optimization) {
+			case OptimizerType::Momentum:
 			loadTrainingMoment(momentumV, in);
-			loadTrainingMoment(adamM, in);
-			loadTrainingMoment(adamV, in);
+				break;
+			case OptimizerType::Adam:
+				loadTrainingMoment(adamM, in);
+				loadTrainingMoment(adamV, in);
+				break;
 		}
 	}
 private:

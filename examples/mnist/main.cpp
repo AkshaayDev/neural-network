@@ -81,7 +81,7 @@ void iterationCallback() {
 void epochCallback() {
 	std::cout << "Epoch " << nn.epochsTrained << " finished.\n";
 	std::ofstream out("./nn.dat", std::ios::binary);
-	nn.save(out, true);
+	nn.save(out, OptimizerType::Adam);
 	out.close();
 }
 
