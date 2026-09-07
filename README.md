@@ -4,7 +4,7 @@
 
 - [Overview](#overview)
 - [Features](#features)
-  1. [Matrix features](#1-matrix-features)
+  1. [NNMatrix features](#1-nnmatrix-features)
   2. [Layers](#2-layers)
   3. [Initializations](#3-initializations)
   4. [Activation functions](#4-activation-functions)
@@ -28,14 +28,14 @@ This project is experimental and for educational purposes.
 
 ## Features
 
-- Minimal purpose-built `Matrix` matrix class
+- Minimal purpose-built `NNMatrix` matrix class
 - Feed-forward dense networks with `NeuralNetwork` class
 - Network initialization, activation functions, loss functions
 - Forward propagation and backpropagation
 - Network saving and loading with a file stream
 - Customizable trainer objects
 
-### 1. Matrix features
+### 1. NNMatrix features
 
 - `std::vector<std::vector<double>>` constructor
 - `rows` and `cols` constructor
@@ -50,7 +50,7 @@ This project is experimental and for educational purposes.
 - Check for `nan`s
 - Scalar and element-wise addition, subtraction, multiplication and division
 - Scalar exponentiation
-- Access data directly with `Matrix[row]`
+- Access data directly with `NNMatrix[row]`
 - Static dot product
 - Transpose of matrix
 - Maximum value of matrix
@@ -136,17 +136,17 @@ nn.setLossFunction(LossType::MSE);
 To run the network, use `run()`.
 
 ```c++
-// This does not set anything and returns the Matrix output of the network
-Matrix predicted = nn.run(input);
+// This does not set anything and returns the NNMatrix output of the network
+NNMatrix predicted = nn.run(input);
 ```
 
 To forward propagate an input and set relevant last inputs and outputs for each layer, use `forwardPropagation()`.
 
 ```c++
 // This performs forward propagation with the input and returns the network output
-Matrix input;
+NNMatrix input;
 // Define `input` here
-Matrix predicted = nn.forwardPropagation(input);
+NNMatrix predicted = nn.forwardPropagation(input);
 ```
 
 To set parameter gradients, use `backwardPropagation()`.
@@ -155,7 +155,7 @@ To set parameter gradients, use `backwardPropagation()`.
 > However, propagation is handled by the network during training.
 
 ```c++
-Matrix real;
+NNMatrix real;
 // Define `real` here
 nn.backwardPropagation(predicted, real);
 ```
@@ -181,12 +181,12 @@ in.close(); // Close the file
 ### 5. Training
 
 To train the network, a trainer object must be created and initialized with the network and the batch.
-The batch is a `std::vector` of samples which is a `std::pair` of the input and output `Matrix`.
+The batch is a `std::vector` of samples which is a `std::pair` of the input and output `NNMatrix`.
 
 ```c++
-std::vector<std::pair<Matrix, Matrix>> batch;
+std::vector<std::pair<NNMatrix, NNMatrix>> batch;
 // Example sample that maps {{0},{0}} to {{0}}
-batch.push_back(std::make_pair(Matrix::fromVector({0,0}), Matrix::fromScalar(0.0))); // 0 ^ 0 = 0
+batch.push_back(std::make_pair(NNMatrix::fromVector({0,0}), NNMatrix::fromScalar(0.0))); // 0 ^ 0 = 0
 
 Trainer trainer(nn, batch);
 ```

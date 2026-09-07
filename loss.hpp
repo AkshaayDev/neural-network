@@ -7,17 +7,17 @@ namespace Loss {
 	double epsilon = 1e-12;
 	// Mean Squared Error
 	// MSE = 1/n * ∑(p_i - r_i)^2
-	inline double MSE(Matrix predicted, Matrix real) {
+	inline double MSE(NNMatrix predicted, NNMatrix real) {
 		return ((predicted - real) ^ 2.0).sum() / real.rows();
 	}
 	// Derivative of Mean Squared Error
 	// MSE' = 2/n * (p_i - r_i)
-	inline Matrix MSEDerivative(Matrix predicted, Matrix real) {
+	inline NNMatrix MSEDerivative(NNMatrix predicted, NNMatrix real) {
 		return 2.0 / real.rows() * (predicted - real);
 	}
 	// Categorical Cross Entropy Loss
 	// CCE = - ∑ r_i log(p_i + ε)
-	inline double CCE(Matrix predicted, Matrix real) {
+	inline double CCE(NNMatrix predicted, NNMatrix real) {
 		double sum = 0;
 		predicted.forEach([&sum, &real](double *val, int i, int j) {
 			sum -= real[i][j] * std::log(*val + epsilon); // epsilon to avoid log(0)
@@ -26,7 +26,7 @@ namespace Loss {
 	}
 	// Derivative of Categorical Cross Entropy Loss
 	// CCE' = - r_i / (p_i + ε)
-	inline Matrix CCEDerivative(Matrix predicted, Matrix real) {
+	inline NNMatrix CCEDerivative(NNMatrix predicted, NNMatrix real) {
 		return -real / (predicted + epsilon); // epsilon to avoid / 0
 	}
 }

@@ -4,14 +4,14 @@
 #include "./neural-network.hpp"
 
 // Minimal matrix class
-class Matrix {
+class NNMatrix {
 public:
 	std::vector<std::vector<double>> data;
 
 	// Constructors
-	Matrix() {}
-	Matrix(std::vector<std::vector<double>> data) : data(data) {}
-	Matrix(int rows, int cols) {
+	NNMatrix() {}
+	NNMatrix(std::vector<std::vector<double>> data) : data(data) {}
+	NNMatrix(int rows, int cols) {
 		this->resize(rows, cols);
 	}
 
@@ -21,7 +21,7 @@ public:
 
 	// Helpers
 	// Print the matrix
-	static void print(Matrix& m) {
+	static void print(NNMatrix& m) {
 		for (int i = 0; i < m.rows(); i++) {
 			for (int j = 0; j < m.cols(); j++) {
 				std::cout << m[i][j] << " ";
@@ -30,20 +30,20 @@ public:
 		}
 	}
 	// Check whether two matrices are of the same size
-	inline static bool sameSize(Matrix a, Matrix b) {
+	inline static bool sameSize(NNMatrix a, NNMatrix b) {
 		return (a.rows() == b.rows()) && (a.cols() == b.cols());
 	}
 	// Return a column matrix (nx1) given a flattened vector
-	static Matrix fromVector(std::vector<double> vec) {
-		Matrix res(vec.size(), 1);
+	static NNMatrix fromVector(std::vector<double> vec) {
+		NNMatrix res(vec.size(), 1);
 		for (int i = 0; i < vec.size(); i++) {
 			res[i][0] = vec[i];
 		}
 		return res;
 	}
 	// Return a scalar matrix (1x1) given a single scalar
-	static Matrix fromScalar(double scalar) {
-		Matrix res;
+	static NNMatrix fromScalar(double scalar) {
+		NNMatrix res;
 		res.data = {{scalar}};
 		return res;
 	}
@@ -80,95 +80,95 @@ public:
 
 	// Operations
 	// Scalar Addition (Matrix + Scalar)
-	Matrix operator+(double scalar) const {
-		Matrix res = *this;
+	NNMatrix operator+(double scalar) const {
+		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int, int) {
 			*val += scalar;
 		});
 		return res;
 	}
 	// Scalar Addition (Scalar + Matrix)
-	friend Matrix operator+(double scalar, Matrix mat) {
+	friend NNMatrix operator+(double scalar, NNMatrix mat) {
 		return mat + scalar;
 	}
 	// Element-wise Addition (Matrix + Matrix)
-	Matrix operator+(const Matrix& other) const {
-		if (!Matrix::sameSize(*this, other)) throw std::runtime_error("Matrix addition dimension mismatch: " +
+	NNMatrix operator+(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("NNMatrix addition dimension mismatch: " +
 			std::to_string(rows()) + "x" + std::to_string(cols()) + " + " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
-		Matrix res = *this;
+		NNMatrix res = *this;
 		res.forEach([&other](double *val, int i, int j) {
 			*val += other[i][j];
 		});
 		return res;
 	}
 	// Unary Negation (-Matrix)
-	Matrix operator-() const {
+	NNMatrix operator-() const {
 		return *this * -1;
 	}
 	// Scalar Subtraction (Matrix - Scalar)
-	Matrix operator-(double scalar) const {
-		Matrix res = *this;
+	NNMatrix operator-(double scalar) const {
+		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int, int) {
 			*val -= scalar;
 		});
 		return res;
 	}
 	// Scalar Subtraction (Scalar - Matrix)
-	friend Matrix operator-(double scalar, Matrix mat) {
+	friend NNMatrix operator-(double scalar, NNMatrix mat) {
 		return scalar + -mat;
 	}
 	// Element-wise Subtraction (Matrix - Matrix)
-	Matrix operator-(const Matrix& other) const {
-		if (!Matrix::sameSize(*this, other)) throw std::runtime_error("Matrix subtraction dimension mismatch: " +
+	NNMatrix operator-(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("NNMatrix subtraction dimension mismatch: " +
 			std::to_string(rows()) + "x" + std::to_string(cols()) + " - " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
-		Matrix res = *this;
+		NNMatrix res = *this;
 		res.forEach([&other](double *val, int i, int j) {
 			*val -= other[i][j];
 		});
 		return res;
 	}
 	// Scalar Multiplication (Matrix * Scalar)
-	Matrix operator*(double scalar) const {
-		Matrix res = *this;
+	NNMatrix operator*(double scalar) const {
+		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int, int) {
 			*val *= scalar;
 		});
 		return res;
 	}
 	// Scalar Multiplication (Scalar * Matrix) 
-	friend Matrix operator*(double scalar, Matrix mat) {
+	friend NNMatrix operator*(double scalar, NNMatrix mat) {
 		mat.forEach([scalar](double *val, int, int) {
 			*val *= scalar;
 		});
 		return mat;
 	}
 	// Element-wise Multiplication (Matrix * Matrix)
-	Matrix operator*(const Matrix& other) const {
-		if (!Matrix::sameSize(*this, other)) throw std::runtime_error("Matrix multiplication dimension mismatch: " +
+	NNMatrix operator*(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("NNMatrix multiplication dimension mismatch: " +
 			std::to_string(rows()) + "x" + std::to_string(cols()) + " * " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
-		Matrix res = *this;
+		NNMatrix res = *this;
 		res.forEach([&other](double *val, int i, int j) {
 			*val *= other[i][j];
 		});
 		return res;
 	}
 	// Scalar Division (Matrix / Scalar) 
-	Matrix operator/(double scalar) const {
+	NNMatrix operator/(double scalar) const {
 		if (scalar == 0) throw std::runtime_error("Cannot divide matrix by 0");
-		Matrix res = *this;
+		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int, int) {
 			*val /= scalar;
 		});
 		return res;
 	}
 	// Scalar Division (Scalar / Matrix)
-	friend Matrix operator/(double scalar, Matrix mat) {
+	friend NNMatrix operator/(double scalar, NNMatrix mat) {
 		mat.forEach([scalar](double *val, int, int) {
 			if (*val == 0) throw std::runtime_error("Cannot divide scalar by 0 element");
 			*val = scalar / *val;
@@ -176,12 +176,12 @@ public:
 		return mat;
 	}
 	// Element-wise Division (Matrix / Matrix)
-	Matrix operator/(const Matrix& other) const {
-		if (!Matrix::sameSize(*this, other)) throw std::runtime_error("Matrix division dimension mismatch: " +
+	NNMatrix operator/(const NNMatrix& other) const {
+		if (!NNMatrix::sameSize(*this, other)) throw std::runtime_error("NNMatrix division dimension mismatch: " +
 			std::to_string(rows()) + "x" + std::to_string(cols()) + " / " +
 			std::to_string(other.rows()) + "x" + std::to_string(other.cols())
 		);
-		Matrix res = *this;
+		NNMatrix res = *this;
 		res.forEach([&other](double *val, int i, int j) {
 			if (other[i][j] == 0) throw std::runtime_error("Cannot element-wise divide by 0");
 			*val /= other[i][j];
@@ -189,15 +189,15 @@ public:
 		return res;
 	}
 	// Scalar Exponent (Matrix ^ Scalar)
-	Matrix operator^(double scalar) const {
-		Matrix res = *this;
+	NNMatrix operator^(double scalar) const {
+		NNMatrix res = *this;
 		res.forEach([scalar](double *val, int, int) {
 			*val = std::pow(*val, scalar);
 		});
 		return res;
 	}
 	// Scalar Exponent (Scalar ^ Matrix)
-	friend Matrix operator^(double scalar, Matrix mat) {
+	friend NNMatrix operator^(double scalar, NNMatrix mat) {
 		mat.forEach([scalar](double *val, int, int) {
 			*val = std::pow(scalar, *val);
 		});
@@ -212,14 +212,14 @@ public:
 		return data[row];
 	}
 	// Dot product of two matrices
-	static Matrix dot(const Matrix& a, const Matrix& b) {
+	static NNMatrix dot(const NNMatrix& a, const NNMatrix& b) {
 		if (a.cols() != b.rows()) {
-			throw std::runtime_error("Matrix dot product dimension mismatch: " +
+			throw std::runtime_error("NNMatrix dot product dimension mismatch: " +
 				std::to_string(a.rows()) + "x" + std::to_string(a.cols()) + " . " +
 				std::to_string(b.rows()) + "x" + std::to_string(b.cols())
 			);
 		}
-		Matrix result(a.rows(), b.cols());
+		NNMatrix result(a.rows(), b.cols());
 		result.fill(0);
 		for (int i = 0; i < a.rows(); i++) {
 			for (int j = 0; j < b.cols(); j++) {
@@ -231,8 +231,8 @@ public:
 		return result;
 	}
 	// Transpose the matrix (Switch rows and columns)
-	Matrix transpose() const {
-		Matrix res(cols(), rows());
+	NNMatrix transpose() const {
+		NNMatrix res(cols(), rows());
 		for (int i = 0; i < rows(); i++) {
 			for (int j = 0; j < cols(); j++) {
 				res[j][i] = data[i][j];

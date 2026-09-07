@@ -89,7 +89,7 @@ namespace Initialization {
 				layer->omega0 = omega0;
 			}
 			std::uniform_real_distribution<double> dis(-limit, limit);
-			for (Matrix& param : layer->params) {
+			for (NNMatrix& param : layer->params) {
 				param.forEach([&dis, &gen](double *val, int, int) {
 					*val = dis(gen);
 				});

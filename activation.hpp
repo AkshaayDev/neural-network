@@ -6,7 +6,7 @@
 namespace Activation {
 	// Sigmoid activation function
 	// σ(x) = 1 / (1 + e^-x)
-	inline Matrix sigmoid(Matrix input) {
+	inline NNMatrix sigmoid(NNMatrix input) {
 		input.forEach([](double* x, int, int) {
 			*x = 1.0 / (1.0 + std::exp(-*x));
 		});
@@ -14,12 +14,12 @@ namespace Activation {
 	}
 	// Derivative of sigmoid activation function
 	// σ'(x) = y * (1 - y)
-	inline Matrix sigmoidDerivative(Matrix output) {
+	inline NNMatrix sigmoidDerivative(NNMatrix output) {
 		return output * (1.0 - output);
 	}
 	// ReLU activation function
 	// ReLU(x) = max(0, x)
-	inline Matrix relu(Matrix input) {
+	inline NNMatrix relu(NNMatrix input) {
 		input.forEach([](double* x, int, int) {
 			*x = std::max(0.0, *x);
 		});
@@ -27,7 +27,7 @@ namespace Activation {
 	}
 	// Derivative of ReLU activation function
 	// ReLU'(x) = 1 if y > 0 else 0
-	inline Matrix reluDerivative(Matrix output) {
+	inline NNMatrix reluDerivative(NNMatrix output) {
 		output.forEach([](double* y, int, int) {
 			*y = *y > 0.0 ? 1.0 : 0.0;
 		});
@@ -35,7 +35,7 @@ namespace Activation {
 	}
 	// Hyperbolic tangent activation function
 	// tanh(x) = (e^x-e^-x)/(e^x+e^-x)
-	inline Matrix tanh(Matrix input) {
+	inline NNMatrix tanh(NNMatrix input) {
 		input.forEach([](double* x, int, int) {
 			*x = std::tanh(*x);
 		});
@@ -44,12 +44,12 @@ namespace Activation {
 	// Derivative of hyperbolic tangent activation function
 	// Let y = tanh(x)
 	// tanh'(x) = 1 - y^2
-	inline Matrix tanhDerivative(Matrix output) {
+	inline NNMatrix tanhDerivative(NNMatrix output) {
 		return 1 - (output ^ 2);
 	}
 	// Softmax activation function
 	// softmax(X)_i = e^(X_i) / sum_j=1^N e^(X_j)
-	inline Matrix softmax(Matrix input) {
+	inline NNMatrix softmax(NNMatrix input) {
 		double sum = 0;
 		double max = input.max();
 		input.forEach([&sum, max, &input](double* x, int, int) {
@@ -63,8 +63,8 @@ namespace Activation {
 	// This derivative is a simplification of the actual derivative which is a Jacobian matrix
 	// Let y_i = softmax(X)_i and dy be the p.d. of the loss w.r.t. to y
 	// softmax'(X) = y(dy - s) where s = y^T . dy
-	inline Matrix softmaxDerivative(Matrix output, Matrix dy) {
-		double s = Matrix::dot(output.transpose(), dy)[0][0];
+	inline NNMatrix softmaxDerivative(NNMatrix output, NNMatrix dy) {
+		double s = NNMatrix::dot(output.transpose(), dy)[0][0];
 		return output * (dy - s);
 	}
 }

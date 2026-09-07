@@ -18,11 +18,11 @@ int main() {
 	// Use Mean Squared Error loss function
 	nn.setLossFunction(LossType::MSE);
 	// Set training data for the network
-	std::vector<std::pair<Matrix, Matrix>> data = {
-		{ Matrix::fromVector({0,0}), Matrix::fromScalar(0.0) }, // 0 ^ 0 = 0
-		{ Matrix::fromVector({0,1}), Matrix::fromScalar(1.0) }, // 0 ^ 1 = 1
-		{ Matrix::fromVector({1,0}), Matrix::fromScalar(1.0) }, // 1 ^ 0 = 1
-		{ Matrix::fromVector({1,1}), Matrix::fromScalar(0.0) }  // 1 ^ 1 = 0
+	std::vector<std::pair<NNMatrix, NNMatrix>> data = {
+		{ NNMatrix::fromVector({0,0}), NNMatrix::fromScalar(0.0) }, // 0 ^ 0 = 0
+		{ NNMatrix::fromVector({0,1}), NNMatrix::fromScalar(1.0) }, // 0 ^ 1 = 1
+		{ NNMatrix::fromVector({1,0}), NNMatrix::fromScalar(1.0) }, // 1 ^ 0 = 1
+		{ NNMatrix::fromVector({1,1}), NNMatrix::fromScalar(0.0) }  // 1 ^ 1 = 0
 	};
 	// Train the network with the training data with gradient descent
 	Trainer trainer(nn, data);
@@ -30,7 +30,7 @@ int main() {
 	trainer.enableShuffling = false;
 	trainer.train(OptimizerType::GradientDescent, 1000);
 	// Test the network by running each test data
-	for (std::pair<Matrix, Matrix> sample : data) {
+	for (std::pair<NNMatrix, NNMatrix> sample : data) {
 		std::cout << sample.first[0][0];
 		std::cout << " ^ ";
 		std::cout << sample.first[1][0];
