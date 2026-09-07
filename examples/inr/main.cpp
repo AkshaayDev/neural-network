@@ -94,6 +94,6 @@ int main() {
 
 	// Write network data to `./nn.dat`
 	std::ofstream out("./nn.dat", std::ios::binary);
-	nn.save(out, true);
+	nn.save(out, OptimizerType::Adam);
 	out.close();
 }

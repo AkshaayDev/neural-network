@@ -186,9 +186,10 @@ public:
 		// Note: This assumes the number for each OptimizerType is 0-255
 		uint8_t optimization;
 		in.read(reinterpret_cast<char*>(&optimization), sizeof(uint8_t));
-		switch (optimization) {
+		OptimizerType opt = static_cast<OptimizerType>(optimization);
+		switch (opt) {
 			case OptimizerType::Momentum:
-			loadTrainingMoment(momentumV, in);
+				loadTrainingMoment(momentumV, in);
 				break;
 			case OptimizerType::Adam:
 				loadTrainingMoment(adamM, in);
