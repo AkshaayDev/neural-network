@@ -19,6 +19,7 @@
 
 class NeuralNetwork {
 public:
+	static const uint32_t SIGNATURE = 0x4E4E4454; // "NNDT", Used for validating data files
 	std::vector<std::unique_ptr<Layer>> layers;
 	// Represents the structure of the neural network (How many neurons is in each layer)
 	int depth = 0; // Number of layers
@@ -113,6 +114,9 @@ public:
 
 	// Save the parameters and architecture to an output file stream with an option to include the training state
 	void save(std::ofstream& out, bool includeTrainingData = false) {
+		// Write the signature
+		uint32_t sig = SIGNATURE;
+		out.write(reinterpret_cast<const char*>(&sig), sizeof(uint32_t));
 		// Write the depth
 		out.write(reinterpret_cast<const char*>(&depth), sizeof(int));
 		// Write the layers
@@ -137,6 +141,10 @@ public:
 	
 	// Load the parameters and architecture from an input file stream
 	void load(std::ifstream& in) {
+		// Read the signature
+		uint32_t sig;
+		in.read(reinterpret_cast<char*>(&sig), sizeof(uint32_t));
+		if (sig != SIGNATURE) throw std::runtime_error("Invalid signature read.");
 		// Clear all vector attributes
 		layers.clear();
 		avgGrads.clear();
