@@ -25,10 +25,10 @@ int main() {
 		{ NNMatrix::fromVector({1,1}), NNMatrix::fromScalar(0.0) }  // 1 ^ 1 = 0
 	};
 	// Train the network with the training data with gradient descent
-	Trainer trainer(nn, data);
-	trainer.learningRate = 10;
+	GradientDescentOptimizer gd(nn, 10);
+	Trainer trainer(nn, gd, data);
 	trainer.enableShuffling = false;
-	trainer.train(OptimizerType::GradientDescent, 1000);
+	trainer.train(1000);
 	// Test the network by running each test data
 	for (std::pair<NNMatrix, NNMatrix> sample : data) {
 		std::cout << sample.first[0][0];

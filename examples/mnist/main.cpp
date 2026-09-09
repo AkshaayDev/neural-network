@@ -61,6 +61,7 @@ std::vector<std::pair<NNMatrix, NNMatrix>> loadMNIST(std::string imgPath, std::s
 
 NeuralNetwork nn;
 std::vector<std::pair<NNMatrix, NNMatrix>> trainset, testset;
+AdamOptimizer adam;
 
 // Calculate average loss of the test set (Uses multithreading if OpenMP is used)
 double avgLoss() {
@@ -81,7 +82,7 @@ void iterationCallback() {
 void epochCallback() {
 	std::cout << "Epoch " << nn.epochsTrained << " finished.\n";
 	std::ofstream out("./nn.dat", std::ios::binary);
-	nn.save(out, OptimizerType::Adam);
+	nn.save(out, &adam);
 	out.close();
 }
 
@@ -119,19 +120,20 @@ int main() {
 	nn.addLayer<ActivationLayer>(128, ActivationType::Softmax);
 	nn.setLossFunction(LossType::CCE);
 	Initialization::heNormal(nn);
+	adam.init(nn);
 	
 	// If there exists a data file `./nn.dat`, read from it
 	std::ifstream in("./nn.dat", std::ios::binary);
-	if (in.good()) nn.load(in);
+	if (in.good()) nn.load(in, std::make_unique<AdamOptimizer>(adam));
 	in.close();
 
 	std::cout << "Training starting after " << nn.epochsTrained << " epochs and " << nn.iterationsTrained << " iterations.\n";
 	std::cout << "Current average testset loss: " << avgLoss() << '\n';
 	// The loss is usually around log_e(1/10) or ~2.30 after initialization
-	Trainer trainer(nn, trainset);
+	Trainer trainer(nn, adam, trainset);
 	trainer.sampleSize = 128;
 	trainer.iterationCallback = iterationCallback;
 	trainer.epochCallback = epochCallback;
-	trainer.train(OptimizerType::Adam, 30);
+	trainer.train(30);
 	std::cout << "Training finished." << std::endl;
 }

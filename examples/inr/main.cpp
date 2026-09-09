@@ -77,23 +77,24 @@ int main() {
 	Initialization::SIRENInit(nn);
 	Initialization::xavierUniform(nn);
 	nn.setLossFunction(LossType::MSE);
+	AdamOptimizer adam(nn);
 
 	// If there exists a data file `./nn.dat`, read from it
 	std::ifstream in("./nn.dat", std::ios::binary);
-	if (in.good()) nn.load(in);
+	if (in.good()) nn.load(in, std::make_unique<AdamOptimizer>(adam));
 	in.close();
 
 	// Train the network with adam
 	loadImage();
-	Trainer trainer(nn, batch);
+	Trainer trainer(nn, adam, batch);
 	trainer.epochCallback = []() { std::cout << "Epoch " << nn.epochsTrained << "\n"; };
 	trainer.sampleSize = 128;
-	trainer.train(OptimizerType::Adam, 100);
+	trainer.train(100);
 	std::cout << "Training finished." << std::endl;
 	createImage("./res.png");
 
 	// Write network data to `./nn.dat`
 	std::ofstream out("./nn.dat", std::ios::binary);
-	nn.save(out, OptimizerType::Adam);
+	nn.save(out, &adam);
 	out.close();
 }
