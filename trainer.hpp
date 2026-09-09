@@ -30,7 +30,7 @@ public:
 					batch.begin() + i,
 					batch.begin() + std::min(i + actualSize, static_cast<int>(batch.size()))
 				);
-				nn.averagePDs(sample);
+				nn.averageGrads(sample);
 				opt.update();
 				nn.iterationsTrained++;
 				iterationCallback();

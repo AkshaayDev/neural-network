@@ -58,8 +58,8 @@ public:
 		lossFnName = loss;
 	}
 
-	// Accumulate and average the partial derivatives for each sample in the batch
-	void averagePDs(std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
+	// Accumulate and average the gradients for each sample in the batch
+	void averageGrads(std::vector<std::pair<NNMatrix, NNMatrix>> batch) {
 		for (int i = 0; i < depth; i++) {
 			for (NNMatrix& avgGrad : avgGrads[i]) {
 				avgGrad.fill(0);

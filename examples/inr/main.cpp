@@ -47,7 +47,6 @@ void loadImage() {
 		throw std::runtime_error("Error loading image: " + std::string(stbi_failure_reason()));
 	}
 	batch.resize(height * width);
-	#pragma omp parallel for collapse(2) // Parallelize each iteration
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			int idx = i * width + j;

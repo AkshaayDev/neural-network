@@ -4,12 +4,14 @@
 
 - [Overview](#overview)
 - [Features](#features)
-  1. [NNMatrix features](#1-nnmatrix-features)
-  2. [Layers](#2-layers)
-  3. [Initializations](#3-initializations)
-  4. [Activation functions](#4-activation-functions)
-  5. [Loss functions](#5-loss-functions)
-  6. [Optimizers](#6-optimizers)
+  1. [Network features](#1-network-features)
+  2. [NNMatrix features](#2-nnmatrix-features)
+  3. [Layers](#3-layers)
+  4. [Initializations](#4-initializations)
+  5. [Activation functions](#5-activation-functions)
+  6. [Loss functions](#6-loss-functions)
+  7. [Optimizers and Their Hyperparameters](#7-optimizers-and-their-hyperparameters)
+  8. [Trainers](#8-trainers)
 - [Usage](#usage)
   1. [Cloning and Including](#1-cloning-and-including)
   2. [Creating and Configuring the Network](#2-creating-and-configuring-the-network)
@@ -29,13 +31,22 @@ This project is experimental and for educational purposes.
 ## Features
 
 - Minimal purpose-built `NNMatrix` matrix class
-- Feed-forward dense networks with `NeuralNetwork` class
+- Feed-forward networks with `NeuralNetwork` class
 - Network initialization, activation functions, loss functions
 - Forward propagation and backpropagation
 - Network saving and loading with a file stream
-- Customizable trainer objects
+- Customizable trainer and optimizer objects
 
-### 1. NNMatrix features
+### 1. Network features
+
+- Layer adding
+- Set loss function
+- Averaging gradients
+- Running the network
+- Forward and backward propagation
+- Saving and loading network data (optionally with optimizer data)
+
+### 2. NNMatrix features
 
 - `std::vector<std::vector<double>>` constructor
 - `rows` and `cols` constructor
@@ -56,36 +67,51 @@ This project is experimental and for educational purposes.
 - Maximum value of matrix
 - Element sum
 
-### 2. Layers
+### 3. Layers
 
 - DenseLayer
 - ActivationLayer
 - SIRENLayer
 
-### 3. Initializations
+### 4. Initializations
 
 - Xavier (Normal/Uniform)
 - He (Normal/Uniform)
 - SIREN weights
 - Constant biases
 
-### 4. Activation functions
+### 5. Activation functions
 
 - Sigmoid
 - ReLU
 - tanh
 - Softmax
 
-### 5. Loss functions
+### 6. Loss functions
 
 - Mean Squared Error
 - Categorical Cross Entropy
 
-### 6. Optimizers
+### 7. Optimizers and Their Hyperparameters
 
 - Gradient Descent
+  - `learningRate` = `0.001`
 - Momentum
+  - `learningRate` = `0.001`
+  - `beta` = `0.9`
 - Adam
+  - `learningRate` = `0.001`
+  - `beta1` = `0.9`
+  - `beta2` = `0.999`
+  - `epsilon` = `1e-8`
+
+### 8. Trainers
+
+Attaches an optimizer and training data batch to the network and handles training data.
+
+- Iteration and epoch callbacks
+- Sample size
+- Data shuffling
 
 ## Usage
 
@@ -163,24 +189,37 @@ nn.backwardPropagation(predicted, real);
 ### 4. Saving and Loading
 
 To save network parameters and architecture, use the `save()` and `load()` functions.
+To save the optimizer data, call `save()` with an `Optimizer*` pointer to the optimizer.
+To load the optimizer data, call `load()` with a `std::unique_ptr<Optimizer>` pointer to the optimizer. If there is no optimizer data found in the input file stream, it will be ignored.
 
 ```c++
+MomentumOptimizer mom(nn);
 // Write the neural network data to a file `out.dat` with binary encoding
 std::ofstream out("out.dat", std::ios::binary);
-nn.save(out); // Save the network data to that file
+nn.save(out, &mom); // Save the network data to that file
 out.close(); // Close the file
 ```
 
 ```c++
+MomentumOptimizer mom(nn);
 // Read the neural network data from a file `in.dat` with binary encoding
 std::ifstream in("in.dat", std::ios::binary);
-nn.load(in); // Load the network data from that file
+nn.load(in, std::make_unique<MomentumOptimizer>(mom)); // Load the network data from that file
 in.close(); // Close the file
 ```
 
 ### 5. Training
 
-To train the network, a trainer object must be created and initialized with the network and the batch.
+Before training the network, an optimizer object must be created to specify the type and hyperparameters of optimization. The optimizer type can be any derived class of the `Optimizer` class.
+
+```c++
+GradientDescentOptimizer gd(nn) // Attaches a network to `gd` with default parameters
+GradientDescentOptimizer gd(nn, 15) // Attaches a network to `gd` with learning rate 15
+```
+
+The optimizer constructor must include the network object and optionally the hyperparameters(See Optimizer features for their hyperparameters).
+
+To train the network, a trainer object must be created and initialized with the network, optimizer and batch.
 The batch is a `std::vector` of samples which is a `std::pair` of the input and output `NNMatrix`.
 
 ```c++
@@ -188,11 +227,11 @@ std::vector<std::pair<NNMatrix, NNMatrix>> batch;
 // Example sample that maps {{0},{0}} to {{0}}
 batch.push_back(std::make_pair(NNMatrix::fromVector({0,0}), NNMatrix::fromScalar(0.0))); // 0 ^ 0 = 0
 
-Trainer trainer(nn, batch);
+Trainer trainer(nn, gd, batch);
 ```
 
-> Note: The network and batch in the constructor are passed by reference
-> If batch shuffling is enabled, it will modify the original batch too
+> Note: The network and batch in the constructor are passed by reference.
+> If batch shuffling is enabled, it will modify the original batch too.
 > To prevent this, you can copy the batch into a new variable or disable shuffling (See below).
 
 Callbacks for iterations and epochs can be set like this:
@@ -211,20 +250,10 @@ trainer.sampleSize = 128;
 trainer.enableShuffling = false;
 ```
 
-During training the optimizers use these hyperparameters by default:
-
-- `learningRate` = 0.001 (used for gradient descent, momentum and adam)
-- `beta` = 0.9 (used for momentum)
-- `beta1` = 0.9 (used for adam)
-- `beta2` = 0.999 (used for adam)
-- `epsilon` = 1e-8 (used for adam)
-
-These hyperparameters can be adjusted as trainer attributes.
-
-Finally call the `train()` method and pass a value from the `OptimizerType` enum class and the number of epochs.
+Finally call the `train()` method with the number of epochs.
 
 ```c++
-trainer.train(OptimizerType::Adam, 100);
+trainer.train(100);
 ```
 
 ## Examples
