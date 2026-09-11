@@ -3,12 +3,10 @@
 // Include fstream library for saving the network data after training
 #include <fstream>
 
-// In this example, we will be using a simple 2,2,2,1 architecture to approximate an XOR gate
+// In this example, we will be using a simple 2,2,1 architecture to approximate an XOR gate
 int main() {
 	NeuralNetwork nn;
 	// Use sigmoid activations
-	nn.addLayer<DenseLayer>(2, 2);
-	nn.addLayer<ActivationLayer>(2, ActivationType::Sigmoid);
 	nn.addLayer<DenseLayer>(2, 2);
 	nn.addLayer<ActivationLayer>(2, ActivationType::Sigmoid);
 	nn.addLayer<DenseLayer>(2, 1);
@@ -25,10 +23,10 @@ int main() {
 		{ NNMatrix::fromVector({1,1}), NNMatrix::fromScalar(0.0) }  // 1 ^ 1 = 0
 	};
 	// Train the network with the training data with gradient descent
-	GradientDescentOptimizer gd(nn, 10);
+	GradientDescentOptimizer gd(nn, 1); // learningRate = 1
 	Trainer trainer(nn, gd, data);
 	trainer.enableShuffling = false;
-	trainer.train(1000);
+	trainer.train(10000);
 	// Test the network by running each test data
 	for (std::pair<NNMatrix, NNMatrix> sample : data) {
 		std::cout << sample.first[0][0];
