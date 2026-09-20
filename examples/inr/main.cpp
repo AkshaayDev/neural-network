@@ -11,12 +11,13 @@
 #include <omp.h>
 
 NeuralNetwork nn;
-const char* imgPath = "./img/img.png";
+const char* imgLoadPath = "./img/img.png";
+const char* imgCreatePath = "./res.png";
 int width, height;
+const int outWidth = 512, outHeight = 512;
 
-// Create the neural representation of the image and save it into `outPath`
-void createImage(const char* outPath) {
-	const int outWidth = 512, outHeight = 512;
+// Create the neural representation of the image and save it into `imgCreatePath`
+void createImage() {
 	unsigned char* data = new unsigned char[outWidth * outHeight * 3];
 	#pragma omp parallel for collapse(2) // Parallelize each iteration
 	for (int i = 0; i < outHeight; i++) {
@@ -32,17 +33,17 @@ void createImage(const char* outPath) {
 			}
 		}
 	}
-	stbi_write_png(outPath, outWidth, outHeight, 3, data, outWidth * 3);
+	stbi_write_png(imgCreatePath, outWidth, outHeight, 3, data, outWidth * 3);
 	delete[] data;
 	data = nullptr;
 }
 
 std::vector<std::pair<NNMatrix, NNMatrix>> batch;
 
-// Load a the image from `imgPath` and create training batch data
+// Load a the image from `imgLoadPath` and create training batch data
 void loadImage() {
 	// Load the image data and metadata such as width and height (0 ignores the number of channels)
-	unsigned char* data = stbi_load(imgPath, &width, &height, 0, 3); // 3 channels expected (RGB)
+	unsigned char* data = stbi_load(imgLoadPath, &width, &height, 0, 3); // 3 channels expected (RGB)
 	if (data == NULL) {
 		throw std::runtime_error("Error loading image: " + std::string(stbi_failure_reason()));
 	}
@@ -84,13 +85,16 @@ int main() {
 	in.close();
 
 	// Train the network with adam
+	std::cout << "Loading image..." << std::endl;
 	loadImage();
+	std::cout << "Image loaded." << std::endl;
 	Trainer trainer(nn, adam, batch);
 	trainer.epochCallback = []() { std::cout << "Epoch " << nn.epochsTrained << "\n"; };
 	trainer.sampleSize = 128;
 	trainer.train(100);
-	std::cout << "Training finished." << std::endl;
-	createImage("./res.png");
+	std::cout << "Creating image..." << std::endl;
+	createImage();
+	std::cout << "Image created" << std::endl;
 
 	// Write network data to `./nn.dat`
 	std::ofstream out("./nn.dat", std::ios::binary);
