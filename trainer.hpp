@@ -1,7 +1,15 @@
 #ifndef TRAINER_HPP
 #define TRAINER_HPP
 
-#include "./neural-network.hpp"
+#include <algorithm>
+#include <chrono>
+#include <functional>
+#include <random>
+#include <utility>
+#include <vector>
+
+#include "network.hpp"
+#include "optimizer.hpp"
 
 class Trainer {
 public:

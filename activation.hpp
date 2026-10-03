@@ -1,7 +1,10 @@
 #ifndef ACTIVATION_HPP
 #define ACTIVATION_HPP
 
-#include "./neural-network.hpp"
+#include <cmath>
+#include <string>
+#include <algorithm>
+#include "./matrix.hpp"
 
 namespace Activation {
 	// Sigmoid activation function

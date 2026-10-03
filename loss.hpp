@@ -1,10 +1,12 @@
 #ifndef LOSS_HPP
 #define LOSS_HPP
 
-#include "./neural-network.hpp"
+#include <cmath>
+#include <string>
+#include "matrix.hpp"
 
 namespace Loss {
-	double epsilon = 1e-12;
+	const double epsilon = 1e-12;
 	// Mean Squared Error
 	// MSE = 1/n * ∑(p_i - r_i)^2
 	inline double MSE(NNMatrix predicted, NNMatrix real) {

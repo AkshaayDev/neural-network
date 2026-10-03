@@ -1,7 +1,14 @@
 #ifndef OPTIMIZER_HPP
 #define OPTIMIZER_HPP
 
-#include "./neural-network.hpp"
+#include <cmath>
+#include <cstdint>
+#include <fstream>
+#include <memory>
+#include <stdexcept>
+#include <vector>
+
+#include "network.hpp"
 
 enum class OptimizerType { GradientDescent, Momentum, Adam };
 

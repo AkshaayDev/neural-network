@@ -1,7 +1,16 @@
 #ifndef LAYER_HPP
 #define LAYER_HPP
 
-#include "./neural-network.hpp"
+#include <cstdint>
+#include <fstream>
+#include <functional>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include "activation.hpp"
+#include "matrix.hpp"
 
 class Layer {
 public:
@@ -56,14 +65,14 @@ public:
 	void save(std::ofstream& out) override {
 		// Write the layer type
 		const std::string type = "Activation";
-		uint32_t size = type.size();
-		out.write(reinterpret_cast<const char*>(&size), sizeof(uint32_t));
+		std::uint32_t size = type.size();
+		out.write(reinterpret_cast<const char*>(&size), sizeof(std::uint32_t));
 		out.write(type.c_str(), size);
 		// Write the number of neurons
 		out.write(reinterpret_cast<const char*>(&inCount), sizeof(int));
 		// Write the activation function name
 		size = fnName.size();
-		out.write(reinterpret_cast<const char*>(&size), sizeof(uint32_t));
+		out.write(reinterpret_cast<const char*>(&size), sizeof(std::uint32_t));
 		out.write(fnName.c_str(), size);
 	}
 	static std::unique_ptr<ActivationLayer> load(std::ifstream& in) {
@@ -72,8 +81,8 @@ public:
 		int count;
 		in.read(reinterpret_cast<char*>(&count), sizeof(int));
 		// Read the activation function
-		uint32_t size;
-		in.read(reinterpret_cast<char*>(&size), sizeof(uint32_t));
+		std::uint32_t size;
+		in.read(reinterpret_cast<char*>(&size), sizeof(std::uint32_t));
 		std::string fnName;
 		fnName.resize(size);
 		in.read(&fnName[0], size);
@@ -104,8 +113,8 @@ public:
 	void save(std::ofstream& out) override {
 		// Write the layer type
 		const std::string type = "Dense";
-		uint32_t size = type.size();
-		out.write(reinterpret_cast<const char*>(&size), sizeof(uint32_t));
+		std::uint32_t size = type.size();
+		out.write(reinterpret_cast<const char*>(&size), sizeof(std::uint32_t));
 		out.write(type.c_str(), size);
 		// Write the number of input and output neurons
 		out.write(reinterpret_cast<const char*>(&inCount), sizeof(int));
@@ -176,8 +185,8 @@ public:
 	void save(std::ofstream& out) override {
 		// Write the layer type
 		const std::string type = "SIREN";
-		uint32_t size = type.size();
-		out.write(reinterpret_cast<const char*>(&size), sizeof(uint32_t));
+		std::uint32_t size = type.size();
+		out.write(reinterpret_cast<const char*>(&size), sizeof(std::uint32_t));
 		out.write(type.c_str(), size);
 		// Write the number of input and output neurons
 		out.write(reinterpret_cast<const char*>(&inCount), sizeof(int));
@@ -210,10 +219,10 @@ public:
 	}
 };
 
-std::unique_ptr<Layer> Layer::load(std::ifstream& in) {
+inline std::unique_ptr<Layer> Layer::load(std::ifstream& in) {
 	std::string type;
-	uint32_t size = 0;
-	in.read(reinterpret_cast<char*>(&size), sizeof(uint32_t));
+	std::uint32_t size = 0;
+	in.read(reinterpret_cast<char*>(&size), sizeof(std::uint32_t));
 	type.resize(size);
 	in.read(&type[0], size);
 	if (type == "Activation") return ActivationLayer::load(in);

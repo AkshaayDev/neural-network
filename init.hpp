@@ -1,11 +1,16 @@
-#ifndef INITS_HPP
-#define INITS_HPP
+#ifndef INIT_HPP
+#define INIT_HPP
 
-#include "./neural-network.hpp"
+#include <chrono>
+#include <random>
+#include <cmath>
+
+#include "layer.hpp"
+#include "network.hpp"
 
 namespace Initialization {
 	// Helper functions for initializations
-	unsigned int getSeed() {
+	inline unsigned int getSeed() {
 		return static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 	}
 	// Weight initialization functions
